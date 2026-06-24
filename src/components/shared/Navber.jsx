@@ -17,6 +17,8 @@ export default function NavbarComponent() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const
+
   const mockUser = {
     name: "Jane Doe",
     email: "jane@lawyer.com",
@@ -190,10 +192,10 @@ export default function NavbarComponent() {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <Link href="/login" className="text-white/60 hover:text-white text-sm transition">
+              <Link href="/auth/signin" className="text-white/60 hover:text-white text-sm transition">
                 Login
               </Link>
-              <Link href="/register" className="px-4 py-2 text-sm rounded-xl bg-gradient-to-r from-emerald-400 to-purple-500 text-black font-semibold hover:scale-105 transition shadow-lg shadow-emerald-500/10">
+              <Link href="/auth/signup" className="px-4 py-2 text-sm rounded-xl bg-gradient-to-r from-emerald-400 to-purple-500 text-black font-semibold hover:scale-105 transition shadow-lg shadow-emerald-500/10">
                 Sign Up
               </Link>
             </div>

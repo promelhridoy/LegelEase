@@ -2,6 +2,7 @@ import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/shared/Navber";
 import Footer from "@/components/shared/Footer";
+import { Toaster } from "sonner";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -33,6 +34,7 @@ export default function RootLayout({ children }) {
           
           <main className="flex-grow pt-16 sm:pt-20">
             {children}
+            <Toaster richColors position="top-right" />
           </main>
           
           <Footer />
