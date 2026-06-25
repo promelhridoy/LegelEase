@@ -11,7 +11,6 @@ import { toast } from "sonner";
 // HeroUI Imports
 import {
   Button,
-  Card,
   Form,
   Input,
   Label,
@@ -19,6 +18,8 @@ import {
   FieldError,
   Spinner,
   Description,
+  RadioGroup,
+  Radio,
 } from "@heroui/react";
 
 import { FcGoogle } from "react-icons/fc";
@@ -29,8 +30,7 @@ const SignUpPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
+  const [role, setRole] = useState("user"); 
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -43,7 +43,11 @@ const SignUpPage = () => {
         email: user.email,
         password: user.password,
         name: user.name,
-        image: user.image,
+        image:
+          user.image ||
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100",
+        role: role,
+        autoSignIn: false,
       });
 
       if (error) {
@@ -55,7 +59,7 @@ const SignUpPage = () => {
       if (data) {
         toast.success("Account created successfully!");
         setTimeout(() => {
-          router.push("/");
+          router.push("/auth/signin");
         }, 1000);
       }
     } catch (err) {
@@ -66,30 +70,16 @@ const SignUpPage = () => {
   };
 
   const handleGoogleSignin = async () => {
-    // setGoogleLoading(true);
-    // const id = toast.loading("Redirecting to Google...");
-
-    // try {
-    //   await authClient.signIn.social({
-    //     provider: "google",
-    //     callbackURL: "/",
-    //   });
-    //   toast.success("Redirecting...", { id });
-    // } catch (error) {
-    //   toast.error("Google Sign In Failed!", { id });
-    //   setGoogleLoading(false);
-    // }
+    // প্রয়োজন হলে গুগল সাইন-ইন লজিক এখানে লিখবেন
   };
 
   return (
     <div className="min-h-screen bg-[#0B0F1A] text-white flex items-center justify-center lg:p-0 relative overflow-hidden">
-      
       {/* Background Soft Glows */}
       <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none hidden lg:block" />
 
       {/* Main Split Container */}
       <div className="w-full min-h-screen lg:min-h-[90vh] lg:max-w-6xl lg:border lg:border-white/10 lg:rounded-3xl lg:m-6 grid grid-cols-1 lg:grid-cols-12 overflow-hidden bg-white/[0.01] backdrop-blur-xl shadow-2xl relative z-10">
-        
         {/* ---------------- LEFT SIDE: PREMIUM IMAGE PANEL ---------------- */}
         <div className="hidden lg:flex lg:col-span-5 relative flex-col justify-between p-12 overflow-hidden border-r border-white/10">
           <Image
@@ -104,10 +94,10 @@ const SignUpPage = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-[#0B0F1A]/70 via-[#0B0F1A]/80 to-[#0B0F1A]/95 -z-10" />
 
           {/* Top Brand Logo */}
-          <Logo/>
+          <Logo />
 
           {/* Bottom Dynamic Quote */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -117,7 +107,8 @@ const SignUpPage = () => {
               Your Gateway to Trusted <br /> Legal Counsel.
             </h3>
             <p className="text-xs text-white/50 leading-relaxed max-w-sm">
-              Join thousands of citizens and businesses securing top-tier, token-verified contracts with elite legal experts.
+              Join thousands of citizens and businesses securing top-tier,
+              token-verified contracts with elite legal experts.
             </p>
           </motion.div>
         </div>
@@ -142,21 +133,31 @@ const SignUpPage = () => {
 
             {/* HeroUI Form */}
             <Form onSubmit={onSubmit} className="space-y-4">
-              
               <TextField isRequired name="name" className="w-full">
-                <Label className="text-xs text-white/60 font-medium mb-1.5 block">Name</Label>
+                <Label className="text-xs text-white/60 font-medium mb-1.5 block">
+                  Name
+                </Label>
                 <Input placeholder="Enter your name" className="text-white" />
                 <FieldError className="text-xs text-rose-400 mt-1" />
               </TextField>
 
               <TextField name="image" className="w-full">
-                <Label className="text-xs text-white/60 font-medium mb-1.5 block">Profile Image URL</Label>
+                <Label className="text-xs text-white/60 font-medium mb-1.5 block">
+                  Profile Image URL
+                </Label>
                 <Input placeholder="https://..." className="text-white" />
                 <FieldError className="text-xs text-rose-400 mt-1" />
               </TextField>
 
-              <TextField isRequired name="email" type="email" className="w-full">
-                <Label className="text-xs text-white/60 font-medium mb-1.5 block">Email</Label>
+              <TextField
+                isRequired
+                name="email"
+                type="email"
+                className="w-full"
+              >
+                <Label className="text-xs text-white/60 font-medium mb-1.5 block">
+                  Email
+                </Label>
                 <Input placeholder="you@example.com" className="text-white" />
                 <FieldError className="text-xs text-rose-400 mt-1" />
               </TextField>
@@ -168,24 +169,78 @@ const SignUpPage = () => {
                 className="w-full"
                 validate={(value) => {
                   if (value.length < 8) return "Min 8 characters required";
-                  if (!/[A-Z]/.test(value)) return "Must include uppercase letter";
+                  if (!/[A-Z]/.test(value))
+                    return "Must include uppercase letter";
                   if (!/[0-9]/.test(value)) return "Must include number";
                   return null;
                 }}
               >
-                <Label className="text-xs text-white/60 font-medium mb-1.5 block">Password</Label>
+                <Label className="text-xs text-white/60 font-medium mb-1.5 block">
+                  Password
+                </Label>
                 <Input placeholder="••••••••" className="text-white" />
-                
                 <Description className="text-[11px] text-white/30 mt-1 block">
                   8+ chars, 1 uppercase, 1 number
                 </Description>
                 <FieldError className="text-xs text-rose-400 mt-1" />
               </TextField>
 
+              <div className="flex flex-col gap-2 w-full pt-1">
+                <Label className="text-xs text-white/60 font-medium block">
+                  Join As
+                </Label>
+
+                <div className="flex flex-col sm:flex-row gap-4 mt-2">
+                  <label
+                    className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all ${
+                      role === "user"
+                        ? "border-emerald-400 bg-emerald-400/10"
+                        : "border-white/10 bg-white/5"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      value="user"
+                      checked={role === "user"}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="w-4 h-4 accent-emerald-400"
+                    />
+                    <span className="text-sm text-white">
+                      Client / General User
+                    </span>
+                  </label>
+
+                  <label
+                    className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all ${
+                      role === "lawyer"
+                        ? "border-purple-500 bg-purple-500/10"
+                        : "border-white/10 bg-white/5"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      value="lawyer"
+                      checked={role === "lawyer"}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="w-4 h-4 accent-purple-500"
+                    />
+                    <span className="text-sm text-white">
+                      Professional Lawyer
+                    </span>
+                  </label>
+                </div>
+
+                <p className="text-xs text-white/40 mt-1">
+                  Selected Role: {role}
+                </p>
+              </div>
+
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-6 mt-2 rounded-xl bg-gradient-to-r from-emerald-400 to-purple-500 text-black font-bold text-sm transition-all shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20"
+                className="w-full py-6 mt-4 rounded-xl bg-gradient-to-r from-emerald-400 to-purple-500 text-black font-bold text-sm transition-all shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20"
               >
                 {loading ? (
                   <div className="flex items-center gap-2 justify-center">
@@ -220,13 +275,15 @@ const SignUpPage = () => {
             {/* Switch to Login */}
             <p className="text-center lg:text-left text-xs text-white/40 mt-6">
               Already have an account?{" "}
-              <Link href="/login" className="text-emerald-400 hover:underline font-medium">
+              <Link
+                href="/auth/login"
+                className="text-emerald-400 hover:underline font-medium"
+              >
                 Log In
               </Link>
             </p>
           </motion.div>
         </div>
-
       </div>
     </div>
   );

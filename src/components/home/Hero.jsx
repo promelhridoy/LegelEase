@@ -39,7 +39,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative min-h-[85vh] sm:h-[90vh] w-full bg-[#0B0F1A] overflow-hidden pt-24 pb-12 flex items-center">
+    <section className="relative min-h-[85vh] sm:h-[90vh] w-full bg-[#0B0F1A] overflow-hidden mt-[-15] pt-24 pb-12 flex items-center">
       
       {/* Background Soft Glows */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[150px] pointer-events-none" />
