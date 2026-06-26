@@ -7,15 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaUser,
   FaSignOutAlt,
-  FaThLarge,
   FaChevronDown,
-  FaSearch,
   FaHistory,
-  FaCommentDots,
   FaBriefcase,
   FaUsers,
-  FaExchangeAlt,
-  FaChartPie,
+  FaThLarge,
 } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
 import Logo from "./Logo";
@@ -25,25 +21,16 @@ import Image from "next/image";
 export default function NavbarComponent() {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: session, isPending } = useSession();
   const user = session?.user;
   const isLoggedIn = !!session;
 
-  // URL থেকে সার্চ কুয়েরি ধরে রাখা
-  useEffect(() => {
-    const currentSearch = searchParams.get("search");
-    if (currentSearch) {
-      setSearchQuery(currentSearch);
-    } else if (pathname !== "/lawyers") {
-      setSearchQuery("");
-    }
-  }, [searchParams, pathname]);
+  // Dynamic state to check if the current active route is a dashboard route
+  const isDashboardRoute = pathname.startsWith("/");
 
   const handleLogout = async () => {
     await signOut({
@@ -68,8 +55,10 @@ export default function NavbarComponent() {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Browse Lawyers", path: "/lawyers" },
+    { name: "About", path: "/about" },
   ];
 
+  // Skeleton structure for global loading state
   if (isPending) {
     return (
       <div className="fixed top-0 left-0 right-0 h-16 bg-[#0B0F1A]/80 border-b border-white/10 z-50 flex items-center justify-between px-6 backdrop-blur-md">
@@ -86,41 +75,28 @@ export default function NavbarComponent() {
       transition={{ duration: 0.5 }}
       className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-[#0B0F1A]/85 backdrop-blur-2xl"
     >
+      {/* Background ambient gradient glow overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-emerald-400/5 to-pink-500/5 pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        {/* লোগো ও মোবাইল বাটন */}
+        {/* Logo and Mobile Menu Toggle Button Trigger */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden text-white text-xl focus:outline-none hover:text-emerald-400 transition-colors"
+            className={`md:hidden text-xl focus:outline-none transition-all duration-300 ${
+              isMenuOpen
+                ? "text-white hover:text-red-400"
+                : isDashboardRoute
+                  ? "text-emerald-400 bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                  : "text-white hover:text-emerald-400"
+            }`}
           >
             {isMenuOpen ? <FiX /> : <FiMenu />}
           </button>
           <Logo />
         </div>
 
-        {/* গ্লোবাল সার্চ বার */}
-        <form
-          onSubmit={handleSearch}
-          className="hidden sm:flex items-center relative max-w-xs w-full"
-        >
-          <input
-            type="text"
-            placeholder="Search lawyers or specialization..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 text-xs rounded-xl pl-4 pr-9 py-2 focus:outline-none focus:border-emerald-400/40"
-          />
-          <button
-            type="submit"
-            className="absolute right-3 text-white/40 hover:text-emerald-400 text-xs"
-          >
-            <FaSearch />
-          </button>
-        </form>
-
-        {/* ডেস্কটপ লিংকসমূহ */}
+        {/* Desktop Navigation Link Container */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => {
             const active = pathname === link.path;
@@ -150,19 +126,20 @@ export default function NavbarComponent() {
             );
           })}
 
+          {/* Desktop Only Dashboard Main Anchor Link */}
           {isLoggedIn && (
             <motion.div whileHover={{ y: -1 }} className="relative py-1">
               <Link
-                href="/dashboard"
+                href="/dashboard/recruter"
                 className={`text-sm font-medium transition-colors ${
-                  pathname.startsWith("/dashboard")
+                  isDashboardRoute
                     ? "text-emerald-400"
                     : "text-white/70 hover:text-white"
                 }`}
               >
                 Dashboard
               </Link>
-              {pathname.startsWith("/dashboard") && (
+              {isDashboardRoute && (
                 <motion.div
                   layoutId="navIndicator"
                   className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-400 to-purple-500 rounded-full"
@@ -172,7 +149,7 @@ export default function NavbarComponent() {
           )}
         </div>
 
-        {/* ডান পাশের অংশ: প্রোফাইল ড্রপডাউন (রোল ভিত্তিক মেনু সহ) */}
+        {/* User Right Profile Actions Dropdown Context */}
         <div className="flex items-center gap-4">
           {isLoggedIn && user ? (
             <div className="relative">
@@ -200,122 +177,107 @@ export default function NavbarComponent() {
               <AnimatePresence>
                 {isDropdownOpen && (
                   <>
+                    {/* Backdrop */}
                     <div
                       className="fixed inset-0 z-40"
                       onClick={() => setIsDropdownOpen(false)}
                     />
 
                     <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      initial={{ opacity: 0, y: 15, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-3 w-64 bg-[#111827]/95 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 backdrop-blur-xl"
+                      exit={{ opacity: 0, y: 15, scale: 0.96 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-3 w-72 rounded-2xl border border-white/10 bg-[#111827]/95 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,.45)] overflow-hidden z-50"
                     >
-                      <div className="p-4 bg-white/[0.02] border-b border-white/5">
-                        <p className="text-emerald-400 text-[9px] font-bold uppercase tracking-wider">
-                          {user.role === "admin"
-                            ? "👑 Admin"
-                            : user.role === "lawyer"
-                              ? "⚖️ Lawyer"
-                              : "👤 Client"}{" "}
-                          Account
-                        </p>
-                        <p className="text-white font-semibold text-sm truncate">
-                          {user.name}
-                        </p>
-                        <p className="text-white/40 text-xs truncate">
-                          {user.email}
-                        </p>
+                      {/* User Info */}
+                      <div className="px-5 py-4 border-b border-white/10">
+                        <div className="flex items-center gap-3">
+                          <Image
+                            src={
+                              user?.image ||
+                              `https://ui-avatars.com/api/?background=0f172a&color=fff&name=${encodeURIComponent(
+                                user?.name || "User",
+                              )}`
+                            }
+                            alt={user?.name}
+                            width={48}
+                            height={48}
+                            className="rounded-full border border-white/10"
+                          />
+
+                          <div className="flex-1 overflow-hidden">
+                            <h3 className="text-white font-semibold truncate">
+                              {user.name}
+                            </h3>
+
+                            <p className="text-xs text-white/50 truncate">
+                              {user.email}
+                            </p>
+
+                            <span className="inline-block mt-2 px-2 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              {user.role === "admin"
+                                ? "👑 Admin"
+                                : user.role === "lawyer"
+                                  ? "⚖️ Lawyer"
+                                  : "👤 Client"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="p-1.5 space-y-0.5 max-h-[300px] overflow-y-auto">
+                      {/* Menu */}
+                      <div className="p-2">
                         <Link
                           href="/dashboard"
                           onClick={() => setIsDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition"
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition"
                         >
-                          <FaUser className="text-xs text-white/40" /> Profile
-                          Overview
+                          <FaUser  className="text-emerald-400 text-sm"  />
+                          <span>Profile</span>
                         </Link>
 
                         {user.role === "user" && (
-                          <>
-                            <Link
-                              href="/dashboard/user/hiring-history"
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition"
-                            >
-                              <FaHistory className="text-xs text-white/40" />{" "}
-                              Hiring History
-                            </Link>
-                            <Link
-                              href="/dashboard/user/comments"
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition"
-                            >
-                              <FaCommentDots className="text-xs text-white/40" />{" "}
-                              My Comments
-                            </Link>
-                          </>
+                          <Link
+                            href="/dashboard/recruter"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition"
+                          >
+                            <FaThLarge className="text-emerald-400 text-sm" />
+                            <span>Dashboard</span>
+                          </Link>
                         )}
 
                         {user.role === "lawyer" && (
-                          <>
-                            <Link
-                              href="/dashboard/lawyer/hiring-history"
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition"
-                            >
-                              <FaBriefcase className="text-xs text-white/40" />{" "}
-                              Hiring Requests
-                            </Link>
-                            <Link
-                              href="/dashboard/lawyer/manage-legal-profile"
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition"
-                            >
-                              <FaThLarge className="text-xs text-white/40" />{" "}
-                              Manage Services
-                            </Link>
-                          </>
+                          <Link
+                            href="/dashboard/lawyer/hiring-history"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition"
+                          >
+                            <FaThLarge className="text-emerald-400 text-sm" />
+                            <span>Dashboard</span>
+                          </Link>
                         )}
 
                         {user.role === "admin" && (
-                          <>
-                            <Link
-                              href="/dashboard/admin/manage-users"
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition"
-                            >
-                              <FaUsers className="text-xs text-white/40" />{" "}
-                              Manage Users
-                            </Link>
-                            <Link
-                              href="/dashboard/admin/all-transactions"
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition"
-                            >
-                              <FaExchangeAlt className="text-xs text-white/40" />{" "}
-                              Transactions
-                            </Link>
-                            <Link
-                              href="/dashboard/admin/analytics"
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition"
-                            >
-                              <FaChartPie className="text-xs text-white/40" />{" "}
-                              Analytics Overview
-                            </Link>
-                          </>
+                          <Link
+                            href="/dashboard/admin/manage-users"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition"
+                          >
+                            <FaThLarge className="text-emerald-400 text-sm" />
+                            <span>Dashboard</span>
+                          </Link>
                         )}
 
-                        <hr className="border-white/5 my-1" />
+                        <div className="my-2 border-t border-white/10" />
 
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition text-left"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition"
                         >
-                          <FaSignOutAlt className="text-xs" /> Logout
+                          <FaSignOutAlt />
+                          <span>Logout</span>
                         </button>
                       </div>
                     </motion.div>
@@ -324,6 +286,7 @@ export default function NavbarComponent() {
               </AnimatePresence>
             </div>
           ) : (
+            /* Unauthenticated user actions container block */
             <div className="flex items-center gap-3">
               <Link
                 href="/auth/signin"
@@ -342,6 +305,7 @@ export default function NavbarComponent() {
         </div>
       </div>
 
+      {/* 📱 Mobile Accordion Dropdown Drawer Panel */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -351,25 +315,9 @@ export default function NavbarComponent() {
             className="md:hidden overflow-hidden bg-[#0B0F1A]/95 border-b border-white/10"
           >
             <div className="px-4 py-4 space-y-2">
-              <form
-                onSubmit={handleSearch}
-                className="flex items-center relative w-full mb-4 sm:hidden"
-              >
-                <input
-                  type="text"
-                  placeholder="Search lawyers..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 text-xs rounded-xl pl-4 pr-9 py-2.5"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-3 text-white/40"
-                >
-                  <FaSearch />
-                </button>
-              </form>
+              {/* Ultra-mobile form search entry */}
 
+              {/* Standard core navigation anchor list */}
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
@@ -381,6 +329,7 @@ export default function NavbarComponent() {
                 </Link>
               ))}
 
+              {/* Dynamically integrated mobile dashboard ecosystem sub-links */}
               {isLoggedIn && user && (
                 <div className="pt-2 border-t border-white/5 space-y-1">
                   <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-400/60">
