@@ -3,15 +3,38 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaUserTie, FaCalendarAlt, FaPaperPlane, FaLock, FaComments } from "react-icons/fa";
 import HireModal from "./HireModal";
 import LawyerSkeleton from "./LawyerSkeleton";
+import { useSession } from "@/lib/auth-client";
 
 const LawyerDetails = ({ id }) => {
   const [lawyer, setLawyer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
+  
+  // Local state arrays holding user submitted reviews
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+
+  // 📡 REAL-TIME AUTHENTICATION SESSION VIA AUTH-CLIENT
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  console.log(user);
+  
+
+  // ⚡ Directly check core states cleanly inside helper constants
+  const isLoggedIn = !!user;
+  console.log(isLoggedIn, "isLoggedIn");
+  
+  const userId = user?.id;
+  const userName = user?.name || "Anonymous Client";
+  
+  const currentRole = user?.role?.toLowerCase() || "";
+  const isClientUser = isLoggedIn && currentRole === "user";
 
   useEffect(() => {
+    // Primary API query targeting centralized database
     fetch(`http://localhost:5000/lawyers/${id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -22,9 +45,67 @@ const LawyerDetails = ({ id }) => {
         console.error("Error fetching lawyer:", err);
         setLoading(false);
       });
+
+    // 📡 FETCH COMMENTS FOR THIS SPECIFIC LAWYER
+    fetch(`http://localhost:5000/comments/${id}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Server responded with status ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setComments(data);
+        } else {
+          setComments([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching comments safely:", err);
+        setComments([]); 
+      });
   }, [id]);
 
-  if (loading) return <LawyerSkeleton />;
+  // 📡 HANDLER PROCESSING LIVE SUBMISSIONS TO BACKEND
+  const handlePostComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim() || !isLoggedIn) return;
+
+    // Constructing dataset to sync flawlessly with MongoDB using active session records
+    const freshCommentObj = {
+      lawyerId: id, 
+      userId: userId,           // ✅ database explicit matching schema 
+      author: userName,         // ✅ Dynamic author payload
+      date: new Date().toISOString().split('T')[0],
+      text: newComment,
+      rating: 5 
+    };
+
+    try {
+      const response = await fetch(`http://localhost:5000/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(freshCommentObj)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Optimistic UI state synchronization
+        setComments(prev => [data.insertedId ? { ...freshCommentObj, _id: data.insertedId } : freshCommentObj, ...prev]);
+        setNewComment("");
+      } else {
+        alert("Failed to securely broadcast your client assessment.");
+      }
+    } catch (error) {
+      console.error("Transmission exception dropping comment data:", error);
+    }
+  };
+
+  if (loading || status === "loading") return <LawyerSkeleton />;
 
   if (!lawyer) {
     return (
@@ -35,17 +116,16 @@ const LawyerDetails = ({ id }) => {
     );
   }
 
-  // Dynamic conditional check for status indicator colors
   const isAvailable = lawyer.status?.toLowerCase() === "available";
 
   return (
-    <section className="min-h-screen bg-[#090b0e] text-white py-16 px-6 sm:px-12 font-sans selection:bg-sky-500/30">
+    <section className="min-h-screen bg-[#090b0e] text-white py-16 px-4 sm:px-12 font-sans selection:bg-sky-500/30 relative overflow-hidden">
       
       {/* GLOW DECORATION BACKGROUND BLUR EFFECTS */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-4xl mx-auto relative z-10 space-y-8">
         
         {/* BACK ACTION TRIGGER */}
         <motion.button
@@ -53,18 +133,18 @@ const LawyerDetails = ({ id }) => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
           onClick={() => window.history.back()}
-          className="text-gray-400 hover:text-sky-400 text-sm font-semibold mb-8 flex items-center gap-2 group transition duration-300"
+          className="text-gray-400 hover:text-sky-400 text-sm font-semibold mb-2 flex items-center gap-2 group transition duration-300 cursor-pointer"
         >
           <span className="group-hover:-translate-x-1 transition-transform duration-200">←</span> 
           Back to Browse Page
         </motion.button>
 
-        {/* MAIN DISPLAY FLEX LAYOUT GRID CONTAINER */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center bg-[#11141c]/90 border border-slate-800/80 rounded-3xl p-6 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-md">
+        {/* MAIN DISPLAY DETAIL CARD */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start bg-[#11141c]/90 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-md">
           
-          {/* LEFT SIDE: HIGH RES AVATAR COMPONENT IMAGE */}
+          {/* LEFT COLUMN: PROFESSIONAL PHOTO AVATAR */}
           <motion.div 
-            className="lg:col-span-5 relative w-full aspect-square sm:max-w-md lg:max-w-none mx-auto rounded-2xl overflow-hidden group border border-slate-700/40 shadow-inner"
+            className="lg:col-span-5 relative w-full aspect-square sm:max-w-xs lg:max-w-none mx-auto rounded-2xl overflow-hidden group border border-slate-700/40 shadow-inner"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "spring", stiffness: 90, damping: 15 }}
@@ -77,23 +157,20 @@ const LawyerDetails = ({ id }) => {
               priority
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
-            
-            {/* AMBIENT SHADOW OVERLAY LAYER */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
           </motion.div>
 
-          {/* RIGHT SIDE: METADATA DETAILS & DYNAMIC CONTENT BLOCK */}
+          {/* RIGHT COLUMN: RELEVANT FIELD METADATA MATRIX */}
           <motion.div 
-            className="lg:col-span-7 flex flex-col justify-between h-full space-y-6"
+            className="lg:col-span-7 flex flex-col justify-between space-y-6 w-full"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 100, damping: 18 }}
           >
-            <div>
-              {/* SPECIALIZATION BADGES & STATUS INDICATORS ROW */}
-              <div className="flex flex-wrap items-center gap-3 mb-5">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="bg-sky-500/10 text-sky-400 border border-sky-500/20 text-xs font-bold px-3.5 py-1.5 rounded-lg tracking-wide uppercase">
-                  {lawyer.specialization} {/* FIXED: Changed from category to specialization */}
+                  {lawyer.specialization}
                 </span>
                 
                 <span className={`text-xs font-bold px-3.5 py-1.5 rounded-lg border flex items-center gap-1.5 tracking-wide ${
@@ -106,57 +183,130 @@ const LawyerDetails = ({ id }) => {
                 </span>
               </div>
 
-              {/* LAWYER NAME PROFILE HEADER TITLE */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-gray-100 mb-4 drop-shadow-sm">
+              <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-gray-100 drop-shadow-sm">
                 {lawyer.name}
               </h1>
 
-              {/* BIO STATEMENT DESCRIPTION WRAPPER */}
-              <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6 font-normal">
+              <p className="text-gray-400 text-xs sm:text-sm leading-relaxed font-normal">
                 {lawyer.bio}
               </p>
 
-              {/* STRUCTURED SPECIFICATION METADATA ROWS */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-b border-slate-800/60 py-5 text-sm">
-                <div className="flex items-center gap-3 bg-[#090b0e]/50 px-4 py-3 rounded-xl border border-slate-800/40">
-                  <span className="text-xl">💰</span>
+              {/* DATA ROWS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-b border-slate-800/60 py-4 text-xs">
+                <div className="flex items-center gap-3 bg-[#090b0e]/50 px-4 py-2.5 rounded-xl border border-slate-800/40">
+                  <span className="text-lg">💰</span>
                   <div>
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Consultation Rate</p>
-                    <p className="text-gray-100 font-bold text-base">
-                      ${lawyer.rate} <span className="text-xs text-gray-400 font-normal">/ hr</span> {/* FIXED: Changed from consultationFee to rate */}
+                    <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Consultation Rate</p>
+                    <p className="text-gray-100 font-bold text-sm">
+                      ${lawyer.rate} <span className="text-[11px] text-gray-400 font-normal">/ hr</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-[#090b0e]/50 px-4 py-3 rounded-xl border border-slate-800/40">
-                  <span className="text-xl">🤝</span>
+                <div className="flex items-center gap-3 bg-[#090b0e]/50 px-4 py-2.5 rounded-xl border border-slate-800/40">
+                  <span className="text-lg">🤝</span>
                   <div>
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Hires</p>
-                    <p className="text-gray-100 font-bold text-base">{lawyer.hires || 0} Cases Served</p>
+                    <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Total Hires</p>
+                    <p className="text-gray-100 font-bold text-sm">{lawyer.hires || 0} Cases Served</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-[#090b0e]/50 px-4 py-3 rounded-xl border border-slate-800/40 sm:col-span-2">
-                  <span className="text-xl">📅</span>
+                <div className="flex items-center gap-3 bg-[#090b0e]/50 px-4 py-2.5 rounded-xl border border-slate-800/40 sm:col-span-2">
+                  <span className="text-lg">📅</span>
                   <div>
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Member of LegalEase Since</p>
-                    <p className="text-gray-200 font-semibold">{lawyer.joinedDate}</p> {/* FIXED: Synced variable */}
+                    <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Platform Member Since</p>
+                    <p className="text-gray-200 font-semibold text-xs">{lawyer.joinedDate}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* INTERACTIVE COMPONENT HIRE ACTION BUTTON */}
-            <motion.button
-              whileHover={{ scale: 1.01, y: -2 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={() => setOpenModal(true)}
-              className="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white text-base font-bold px-10 py-4 rounded-xl shadow-[0_4px_20px_rgba(14,165,233,0.25)] hover:shadow-[0_4px_25px_rgba(14,165,233,0.45)] transition-all duration-300 tracking-wide text-center"
-            >
-              Hire Expert Profile →
-            </motion.button>
+            {/* ACTION TRIGGERS AREA */}
+            <div>
+              {isClientUser ? (
+                <motion.button
+                  whileHover={{ scale: 1.01, y: -2 }}
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => setOpenModal(true)}
+                  className="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold px-8 py-3.5 rounded-xl shadow-[0_4px_20px_rgba(14,165,233,0.25)] transition-all duration-300 tracking-wide text-center cursor-pointer"
+                >
+                  Hire Expert Profile →
+                </motion.button>
+              ) : (
+                <div className="p-3 bg-amber-500/5 rounded-xl border border-amber-500/10 text-amber-400 text-xs flex items-center gap-2">
+                  <FaLock className="text-[10px]" /> Authenticate client account permissions to book standard appointments.
+                </div>
+              )}
+            </div>
           </motion.div>
         </div>
+
+        {/* FEEDBACK ENGINE & REVIEWS TIMELINE BLOCK */}
+        <div className="bg-[#11141c]/90 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-md space-y-6">
+          <h2 className="text-base sm:text-lg font-black text-gray-100 flex items-center gap-2.5 tracking-tight">
+            <FaComments className="text-sky-400 text-sm sm:text-base" /> Client Feedback Loops ({comments.length})
+          </h2>
+
+          {/* Comment Form Gate */}
+          {isLoggedIn ? (
+            <form onSubmit={handlePostComment} className="space-y-3">
+              <div className="relative">
+                <textarea
+                  rows={3}
+                  required
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Draft continuous technical recommendations or consult feedback statements here..."
+                  className="w-full bg-[#090b0e]/60 border border-slate-800 rounded-xl p-4 text-xs sm:text-sm text-white placeholder-gray-600 focus:outline-none focus:border-sky-500/50 resize-none transition-all leading-relaxed"
+                />
+                <button 
+                  type="submit" 
+                  className="absolute bottom-4 right-4 p-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center"
+                  title="Broadcast Review"
+                >
+                  <FaPaperPlane className="text-[11px]" />
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="p-4 bg-white/[0.01] border border-dashed border-slate-800 rounded-xl text-center text-gray-500 text-xs py-6 flex items-center justify-center gap-2">
+              <FaLock className="text-[10px]" /> Please sign in to submit professional assessments.
+            </div>
+          )}
+
+          {/* Dynamic Feed Presentation Grid */}
+          <div className="space-y-4 divide-y divide-slate-800/50">
+            <AnimatePresence mode="popLayout">
+              {comments.map((comment) => (
+                <motion.div 
+                  key={comment._id || comment.id} 
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="pt-4 first:pt-0 group"
+                >
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="font-bold text-xs sm:text-sm text-gray-200 group-hover:text-sky-400 transition-colors flex items-center gap-2">
+                      <FaUserTie className="text-[10px] text-gray-600" /> {comment.author}
+                    </span>
+                    <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1">
+                      <FaCalendarAlt className="text-[9px]" /> {comment.date}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-400 leading-relaxed pl-4 border-l border-slate-800 group-hover:border-sky-500/40 transition-all font-medium">
+                    {comment.text}
+                  </p>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {comments.length === 0 && (
+              <p className="text-center text-xs font-bold text-gray-600 py-6">No localized logs registered yet. Initiate discussion.</p>
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* RENDER MODAL CONDITIONAL LAYER */}
