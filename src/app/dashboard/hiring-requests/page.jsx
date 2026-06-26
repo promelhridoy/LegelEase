@@ -1,0 +1,157 @@
+"use client";
+
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaHistory, FaUser, FaCalendarAlt, FaCheck, FaTimes, FaInbox, FaEnvelope, FaGavel } from 'react-icons/fa';
+
+export default function HiringRequestsPage() {
+  const [requests, setRequests] = useState([
+    {
+      id: "req-01",
+      clientName: "Ahsan Habib",
+      email: "ahsan.habib@gmail.com",
+      requestDate: "2026-06-26",
+      serviceRequested: "Corporate Contract Review",
+      status: "PENDING"
+    },
+    {
+      id: "req-02",
+      clientName: "Nusrat Jahan",
+      email: "nusrat.jahan@hotmail.com",
+      requestDate: "2026-06-25",
+      serviceRequested: "Intellectual Property Consultation",
+      status: "PENDING"
+    },
+    {
+      id: "req-03",
+      clientName: "Siddiqur Rahman",
+      email: "siddiq.legal@yahoo.com",
+      requestDate: "2026-06-20",
+      serviceRequested: "Family Asset Division Dispute",
+      status: "ACCEPTED"
+    }
+  ]);
+
+  const handleAccept = (id) => {
+    setRequests(prev => prev.map(req => req.id === id ? { ...req, status: "ACCEPTED" } : req));
+  };
+
+  const handleReject = (id) => {
+    if (window.confirm("Are you sure you want to decline this hiring request?")) {
+      setRequests(prev => prev.map(req => req.id === id ? { ...req, status: "REJECTED" } : req));
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      className="space-y-6 w-full max-w-6xl mx-auto px-2 sm:px-0"
+    >
+      {/* PAGE HEADER */}
+      <div className="space-y-1.5 border-b border-white/5 pb-5">
+        <h1 className="text-xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+          <FaHistory className="text-emerald-400" /> Hiring Requests
+        </h1>
+        <p className="text-xs md:text-sm text-white/40 font-medium">
+          Monitor incoming legal counsel requests from clients and manage workflow status.
+        </p>
+      </div>
+
+      {/* 📱 ১. মোবাইল ভিউ কার্ড লেআউট (শুধুমাত্র ছোট স্ক্রিনে দেখাবে - md:hidden) */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {requests.map((request) => (
+          <div 
+            key={request.id} 
+            className="bg-[#090D16]/90 border border-white/[0.05] rounded-xl p-4 space-y-3 shadow-lg"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-sm font-bold text-white tracking-wide">{request.clientName}</h3>
+                <p className="text-[11px] text-white/30 flex items-center gap-1 mt-0.5"><FaEnvelope className="text-[10px]" /> {request.email}</p>
+              </div>
+              
+              {/* স্ট্যাটাস ব্যাজ */}
+              <div>
+                {request.status === "PENDING" && <span className="px-2 py-0.5 rounded text-[9px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/10">PENDING</span>}
+                {request.status === "ACCEPTED" && <span className="px-2 py-0.5 rounded text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">ACCEPTED</span>}
+                {request.status === "REJECTED" && <span className="px-2 py-0.5 rounded text-[9px] font-black bg-red-500/10 text-red-400 border border-red-500/10">REJECTED</span>}
+              </div>
+            </div>
+
+            <div className="bg-white/[0.01] p-2.5 rounded-lg border border-white/[0.02] text-xs space-y-1">
+              <p className="text-white/60 font-medium flex items-center gap-1.5"><FaGavel className="text-[10px] text-emerald-400" /> {request.serviceRequested}</p>
+              <p className="text-white/30 font-mono text-[10px] flex items-center gap-1.5"><FaCalendarAlt className="text-[10px]" /> {request.requestDate}</p>
+            </div>
+
+            {/* অ্যাকশন বাটন ইন্টারফেস */}
+            <div className="flex justify-end gap-2 pt-1">
+              {request.status === "PENDING" ? (
+                <>
+                  <button onClick={() => handleReject(request.id)} className="w-1/2 py-2 rounded-lg text-xs font-bold bg-white/5 text-white/60 hover:bg-red-500/10 hover:text-red-400 border border-white/5 transition-all">Reject</button>
+                  <button onClick={() => handleAccept(request.id)} className="w-1/2 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all">Accept</button>
+                </>
+              ) : (
+                <span className="text-xs text-white/20 italic pr-1 py-1">Action Processed</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 💻 ২. ডেস্কটপ ভিউ টেবিল লেআউট (বড় স্ক্রিনে দেখাবে - hidden md:block) */}
+      <div className="hidden md:block w-full overflow-hidden rounded-2xl border border-white/[0.05] bg-[#090D16]/80 backdrop-blur-xl shadow-xl">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-white/5 text-white/40 uppercase text-[11px] font-bold tracking-wider bg-white/[0.01]">
+              <th className="p-4 pl-6"><span className="flex items-center gap-1.5"><FaUser /> Client Name</span></th>
+              <th className="p-4">Service Requested</th>
+              <th className="p-4"><span className="flex items-center gap-1.5"><FaCalendarAlt /> Request Date</span></th>
+              <th className="p-4 text-center">Status</th>
+              <th className="p-4 pr-6 text-right">Action Interface</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.02] text-sm text-white/80">
+            {requests.map((request) => (
+              <tr key={request.id} className="hover:bg-white/[0.01] transition-colors duration-150 group">
+                <td className="p-4 pl-6">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-white tracking-wide group-hover:text-emerald-400 transition-colors">{request.clientName}</span>
+                    <span className="text-[11px] text-white/30 font-medium mt-0.5">{request.email}</span>
+                  </div>
+                </td>
+                <td className="p-4 text-white/70 font-medium">{request.serviceRequested}</td>
+                <td className="p-4 text-white/40 font-mono font-medium">{request.requestDate}</td>
+                <td className="p-4 text-center">
+                  {request.status === "PENDING" && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/10">⏳ PENDING</span>}
+                  {request.status === "ACCEPTED" && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">✓ ACCEPTED</span>}
+                  {request.status === "REJECTED" && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-red-500/10 text-red-400 border border-red-500/10">✕ REJECTED</span>}
+                </td>
+                <td className="p-4 pr-6 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    {request.status === "PENDING" ? (
+                      <>
+                        <button onClick={() => handleAccept(request.id)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-all cursor-pointer flex items-center gap-1"><FaCheck className="text-[10px]" /> Accept</button>
+                        <button onClick={() => handleReject(request.id)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white/60 bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/5 transition-all cursor-pointer flex items-center gap-1"><FaTimes className="text-[10px]" /> Reject</button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-white/20 font-medium italic pr-2">Action Processed</span>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* EMPTY STATE */}
+      {requests.length === 0 && (
+        <div className="text-center p-20 bg-[#090D16]/40 rounded-2xl border border-dashed border-white/10 flex flex-col items-center justify-center gap-3">
+          <FaInbox className="text-white/20 text-3xl" />
+          <p className="text-sm font-bold text-white/30">No hiring requests discovered.</p>
+        </div>
+      )}
+    </motion.div>
+  );
+}

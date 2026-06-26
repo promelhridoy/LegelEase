@@ -239,7 +239,7 @@ export default function NavbarComponent() {
 
                         {user.role === "user" && (
                           <Link
-                            href="/dashboard/recruter"
+                            href="/dashboard/profile"
                             onClick={() => setIsDropdownOpen(false)}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition"
                           >
@@ -347,14 +347,14 @@ export default function NavbarComponent() {
                   {user.role === "user" && (
                     <>
                       <Link
-                        href="/dashboard/user/hiring-history"
+                        href="/dashboard/hiring-history"
                         onClick={() => setIsMenuOpen(false)}
                         className="block py-2 px-3 text-sm text-white/70 rounded-xl hover:bg-white/5"
                       >
                         Hiring History
                       </Link>
                       <Link
-                        href="/dashboard/user/comments"
+                        href="/dashboard/my-comments"
                         onClick={() => setIsMenuOpen(false)}
                         className="block py-2 px-3 text-sm text-white/70 rounded-xl hover:bg-white/5"
                       >
@@ -366,14 +366,14 @@ export default function NavbarComponent() {
                   {user.role === "lawyer" && (
                     <>
                       <Link
-                        href="/dashboard/lawyer/hiring-history"
+                        href="/dashboard/hiring-requests"
                         onClick={() => setIsMenuOpen(false)}
                         className="block py-2 px-3 text-sm text-white/70 rounded-xl hover:bg-white/5"
                       >
                         Hiring Requests
                       </Link>
                       <Link
-                        href="/dashboard/lawyer/manage-legal-profile"
+                        href="/dashboard/manage-services"
                         onClick={() => setIsMenuOpen(false)}
                         className="block py-2 px-3 text-sm text-white/70 rounded-xl hover:bg-white/5"
                       >

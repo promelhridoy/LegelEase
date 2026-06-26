@@ -33,13 +33,13 @@ function DashboardSide() {
     const menuItems = {
         user: [
             { name: "Profile Overview", path: "/dashboard/profile", icon: <FaUser /> },
-            { name: "Hiring History", path: "/dashboard/user/hiring-history", icon: <FaHistory /> },
-            { name: "My Comments", path: "/dashboard/user/comments", icon: <FaCommentDots /> },
+            { name: "Hiring History", path: "/dashboard/hiring-history", icon: <FaHistory /> },
+            { name: "My Comments", path: "/dashboard/my-comments", icon: <FaCommentDots /> },
         ],
         lawyer: [
-            { name: "Profile Overview", path: "/dashboard", icon: <FaUser /> },
-            { name: "Hiring Requests", path: "/dashboard/lawyer/hiring-history", icon: <FaBriefcase /> },
-            { name: "Manage Services", path: "/dashboard/lawyer/manage-legal-profile", icon: <FaThLarge /> },
+            { name: "Profile Overview", path: "/dashboard/profile", icon: <FaUser /> },
+            { name: "Hiring Requests", path: "/dashboard/hiring-requests", icon: <FaBriefcase /> },
+            { name: "Manage Services", path: "/dashboard/manage-services", icon: <FaThLarge /> },
         ],
         admin: [
             { name: "Profile Overview", path: "/dashboard/profile", icon: <FaUser /> },
