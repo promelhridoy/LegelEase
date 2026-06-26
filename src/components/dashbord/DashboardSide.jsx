@@ -15,10 +15,10 @@ function DashboardSide() {
     const { data: session, isPending } = useSession();
     const user = session?.user;
 
-    // Skeleton loading state for desktop sidebar
+    // 🔄 Unified Skeleton Loader Framework matching layout constraints
     if (isPending) {
         return (
-            <aside className="hidden md:block w-64 shrink-0 border-r border-white/5 p-5 bg-[#090D16] min-h-screen animate-pulse fixed left-0 top-0 pt-24 z-20">
+            <aside className="hidden lg:block w-64 shrink-0 border-r border-white/5 p-5 bg-[#090D16] h-screen fixed left-0 top-0 pt-24 z-20 animate-pulse">
                 <div className="h-8 bg-white/5 rounded-lg mb-8 w-3/4" />
                 <div className="space-y-4">
                     {[1, 2, 3, 4].map((i) => (
@@ -32,7 +32,7 @@ function DashboardSide() {
     // Role-based dynamic menu items
     const menuItems = {
         user: [
-            { name: "Profile Overview", path: "/dashboard", icon: <FaUser /> },
+            { name: "Profile Overview", path: "/dashboard/profile", icon: <FaUser /> },
             { name: "Hiring History", path: "/dashboard/user/hiring-history", icon: <FaHistory /> },
             { name: "My Comments", path: "/dashboard/user/comments", icon: <FaCommentDots /> },
         ],
@@ -42,7 +42,7 @@ function DashboardSide() {
             { name: "Manage Services", path: "/dashboard/lawyer/manage-legal-profile", icon: <FaThLarge /> },
         ],
         admin: [
-            { name: "Profile Overview", path: "/dashboard", icon: <FaUser /> },
+            { name: "Profile Overview", path: "/dashboard/profile", icon: <FaUser /> },
             { name: "Manage Users", path: "/dashboard/admin/manage-users", icon: <FaUsers /> },
             { name: "Transactions", path: "/dashboard/admin/all-transactions", icon: <FaExchangeAlt /> },
             { name: "Analytics Overview", path: "/dashboard/admin/analytics", icon: <FaChartPie /> },
@@ -52,9 +52,10 @@ function DashboardSide() {
     const currentMenu = menuItems[user?.role] || menuItems["user"];
 
     return (
-        /* 🖥️ Desktop Sidebar: This entire block automatically hides on screens smaller than 'lg' */
-        <aside className="hidden md:block w-64 shrink-0 border-r border-white/5 p-5 bg-[#090D16] fixed left-0 top-0 h-full pt-24 z-20">
-            <div className="flex flex-col justify-between h-full">
+        /* 🖥️ Fixed Dashboard Core Sidebar Window */
+        /* Changed 'hidden md:block' to 'hidden lg:block' to cleanly match layout architecture boundaries */
+        <aside className="hidden lg:block w-64 shrink-0 border-r border-white/5 p-5 bg-[#090D16] fixed left-0 top-0 h-screen pt-24 z-20">
+            <div className="flex flex-col justify-between h-full pb-4">
                 <div className="space-y-6">
                     {/* Active Role Badge */}
                     <div className="px-1">

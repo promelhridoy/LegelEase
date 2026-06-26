@@ -83,7 +83,7 @@ export default function NavbarComponent() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`md:hidden text-xl focus:outline-none transition-all duration-300 ${
+            className={`lg:hidden text-xl focus:outline-none transition-all duration-300 ${
               isMenuOpen
                 ? "text-white hover:text-red-400"
                 : isDashboardRoute
@@ -97,7 +97,7 @@ export default function NavbarComponent() {
         </div>
 
         {/* Desktop Navigation Link Container */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => {
             const active = pathname === link.path;
             return (
@@ -229,7 +229,7 @@ export default function NavbarComponent() {
                       {/* Menu */}
                       <div className="p-2">
                         <Link
-                          href="/dashboard"
+                          href="/dashboard/profile"
                           onClick={() => setIsDropdownOpen(false)}
                           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition"
                         >
@@ -312,7 +312,7 @@ export default function NavbarComponent() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden bg-[#0B0F1A]/95 border-b border-white/10"
+            className="lg:hidden overflow-hidden bg-[#0B0F1A]/95 border-b border-white/10"
           >
             <div className="px-4 py-4 space-y-2">
               {/* Ultra-mobile form search entry */}
@@ -337,7 +337,7 @@ export default function NavbarComponent() {
                   </p>
 
                   <Link
-                    href="/dashboard"
+                    href="/dashboard/profile"
                     onClick={() => setIsMenuOpen(false)}
                     className="block py-2 px-3 text-sm text-white/70 rounded-xl hover:bg-white/5"
                   >

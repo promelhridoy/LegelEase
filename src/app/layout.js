@@ -2,8 +2,7 @@ import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/shared/Navber";
 import { Toaster } from "sonner";
-import Footer from "@/components/shared/Footer";
-// import LayoutWrapper from "@/components/shared/LayoutWrapper";
+import LayoutWrapper from "@/components/shared/LayoutWrapper";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -34,13 +33,12 @@ export default function RootLayout({ children }) {
         <Navbar />
         
         {/* ⚡ Client context wrapper handling layout routing rules */}
-        {/* <LayoutWrapper> */}
+        <LayoutWrapper>
           <main className="flex-grow pt-16 sm:pt-20">
             {children}
             <Toaster richColors position="top-right" />
           </main>
-        {/* </LayoutWrapper> */}
-        <Footer></Footer>
+        </LayoutWrapper>
       </body>
     </html>
   );
