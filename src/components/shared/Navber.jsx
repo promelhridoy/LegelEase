@@ -385,21 +385,21 @@ export default function NavbarComponent() {
                   {user.role === "admin" && (
                     <>
                       <Link
-                        href="/dashboard/admin/manage-users"
+                        href="/dashboard/manage-users"
                         onClick={() => setIsMenuOpen(false)}
                         className="block py-2 px-3 text-sm text-white/70 rounded-xl hover:bg-white/5"
                       >
                         Manage Users
                       </Link>
                       <Link
-                        href="/dashboard/admin/all-transactions"
+                        href="/dashboard/transactions"
                         onClick={() => setIsMenuOpen(false)}
                         className="block py-2 px-3 text-sm text-white/70 rounded-xl hover:bg-white/5"
                       >
                         Transactions
                       </Link>
                       <Link
-                        href="/dashboard/admin/analytics"
+                        href="/dashboard/analytics"
                         onClick={() => setIsMenuOpen(false)}
                         className="block py-2 px-3 text-sm text-white/70 rounded-xl hover:bg-white/5"
                       >

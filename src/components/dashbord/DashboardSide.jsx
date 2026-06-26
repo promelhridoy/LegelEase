@@ -43,9 +43,9 @@ function DashboardSide() {
         ],
         admin: [
             { name: "Profile Overview", path: "/dashboard/profile", icon: <FaUser /> },
-            { name: "Manage Users", path: "/dashboard/admin/manage-users", icon: <FaUsers /> },
-            { name: "Transactions", path: "/dashboard/admin/all-transactions", icon: <FaExchangeAlt /> },
-            { name: "Analytics Overview", path: "/dashboard/admin/analytics", icon: <FaChartPie /> },
+            { name: "Manage Users", path: "/dashboard/manage-users", icon: <FaUsers /> },
+            { name: "Transactions", path: "/dashboard/transactions", icon: <FaExchangeAlt /> },
+            { name: "Analytics Overview", path: "/dashboard/analytics", icon: <FaChartPie /> },
         ],
     };
 
