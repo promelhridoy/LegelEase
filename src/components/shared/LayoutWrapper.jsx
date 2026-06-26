@@ -6,9 +6,8 @@ import Footer from "./Footer";
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname();
 
-  const isDashboard =
-    pathname.startsWith("/dashboard/recruter") ||
-    pathname.startsWith("/dashboard/profile");
+  // Dynamically catch any route starting with /dashboard to keep layouts clean
+  const isDashboard = pathname ? pathname.startsWith("/dashboard") : false;
 
   return (
     <>
