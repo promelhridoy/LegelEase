@@ -21,7 +21,6 @@ const LawyerDetails = ({ id }) => {
   const { data: session, status } = useSession();
   const user = session?.user;
   console.log(user);
-  
 
   // ⚡ Directly check core states cleanly inside helper constants
   const isLoggedIn = !!user;
@@ -149,14 +148,20 @@ const LawyerDetails = ({ id }) => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "spring", stiffness: 90, damping: 15 }}
           >
-            <Image
-              src={lawyer.image}
-              alt={lawyer.name}
-              fill
-              sizes="(max-w-7xl) 100vw"
-              priority
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-            />
+           <div className="relative w-full h-full">
+  {lawyer.image ? (
+    <Image
+      src={lawyer.image}
+      alt={lawyer.name}
+      fill
+      className="object-cover"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center bg-slate-800 text-5xl">
+      👨‍⚖️
+    </div>
+  )}
+</div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
           </motion.div>
 

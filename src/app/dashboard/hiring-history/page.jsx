@@ -1,17 +1,42 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserTie, FaGavel, FaDollarSign, FaCalendarAlt, FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaCreditCard } from 'react-icons/fa';
+import { useSession } from "@/lib/auth-client";
+
 
 export default function HiringHistoryPage() {
-  // 📝 Dummy Data
-  const [hiringRecords, setHiringRecords] = useState([
-    { id: "req-101", lawyerName: "Adv. Promel Hossain", specialization: "Corporate Law", fee: 250, hiringDate: "2026-06-24", status: "accepted" },
-    { id: "req-102", lawyerName: "Barrister Sarah Karim", specialization: "Intellectual Property", fee: 400, hiringDate: "2026-06-25", status: "pending" },
-    { id: "req-103", lawyerName: "Adv. Tariqul Islam", specialization: "Criminal Defense", fee: 180, hiringDate: "2026-06-20", status: "rejected" },
-    { id: "req-104", lawyerName: "Adv. Nusrat Jahan", specialization: "Family Law", fee: 300, hiringDate: "2026-06-26", status: "accepted" }
-  ]);
+const { data: session } = useSession();
+
+const user = session?.user;
+
+const userId = user?.id;
+console.log(userId);
+
+
+  const [hiringRecords, setHiringRecords] = useState([]);
+useEffect(() => {
+  if (!userId) return;
+
+
+  fetch(`http://localhost:5000/hiring/${userId}`)
+    .then((res) => {
+      if (!res.ok) throw new Error("Failed to load hiring history");
+      return res.json();
+    })
+    .then((data) => {
+      setHiringRecords(Array.isArray(data) ? data : []);
+    })
+    .catch((err) => {
+      console.error(err);
+      toast.error("Failed to load hiring history.");
+      setHiringRecords([]);
+    });
+}, [userId]);
+
+console.log(hiringRecords);
+
 
   const handlePayment = (id, lawyerName) => {
     alert(`Initiating secure checkout for ${lawyerName}`);
@@ -51,8 +76,8 @@ export default function HiringHistoryPage() {
 
       {/* 📱 MOBILE VIEW: Shows as beautiful modern stack cards (Hidden on desktop) */}
       <div className="grid grid-cols-1 gap-4 lg:hidden">
-        {hiringRecords.map((record) => (
-          <div key={record.id} className="bg-[#090D16]/80 backdrop-blur-xl border border-white/[0.05] p-5 rounded-2xl space-y-4 relative overflow-hidden">
+        {hiringRecords?.map((record) => (
+          <div key={record._id} className="bg-[#090D16]/80 backdrop-blur-xl border border-white/[0.05] p-5 rounded-2xl space-y-4 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#05E599]/5 rounded-full blur-2xl pointer-events-none" />
             
             <div className="flex justify-between items-start gap-2">
@@ -66,7 +91,7 @@ export default function HiringHistoryPage() {
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/[0.04] text-xs">
               <div>
                 <span className="text-white/30 block text-[10px] uppercase tracking-wider font-bold">Retainer Fee</span>
-                <span className="text-white/80 font-mono font-bold text-sm">${record.fee}</span>
+                <span className="text-white/80 font-mono font-bold text-sm">${record.rate}</span>
               </div>
               <div>
                 <span className="text-white/30 block text-[10px] uppercase tracking-wider font-bold">Hiring Date</span>
@@ -110,10 +135,10 @@ export default function HiringHistoryPage() {
             </thead>
             <tbody className="divide-y divide-white/[0.03]">
               {hiringRecords.map((record) => (
-                <tr key={record.id} className="hover:bg-white/[0.02] transition-colors group duration-150">
+                <tr key={record._id} className="hover:bg-white/[0.02] transition-colors group duration-150">
                   <td className="p-5 text-sm font-bold text-white tracking-wide whitespace-nowrap">{record.lawyerName}</td>
                   <td className="p-5 text-sm font-semibold text-white/70 whitespace-nowrap">{record.specialization}</td>
-                  <td className="p-5 text-sm font-mono font-bold text-white/90 whitespace-nowrap">${record.fee}</td>
+                  <td className="p-5 text-sm font-mono font-bold text-white/90 whitespace-nowrap">${record.rate}</td>
                   <td className="p-5 text-sm font-medium text-white/50 whitespace-nowrap">{record.hiringDate}</td>
                   <td className="p-5 whitespace-nowrap">{renderStatusBadge(record.status)}</td>
                   <td className="p-5 text-right whitespace-nowrap">

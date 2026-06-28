@@ -21,14 +21,16 @@ export default function LawyerCard({ lawyer }) {
         
         {/* 📸 Visual Media Framework Area */}
         <div className="relative h-60 w-full overflow-hidden bg-slate-950">
-          <Image
-            src={image}
-            alt={name}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority={true}
-            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
-          />
+         <Image
+  src={
+    image && typeof image === "string"
+      ? image
+      : "/default-lawyer.png"
+  }
+  alt={name || "Lawyer"}
+  fill
+  className="object-cover"
+/>
 
           {/* Linear subtle shadow blend to typography bounds */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-transparent to-black/10" />

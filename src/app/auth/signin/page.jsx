@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client"; // তোমার ফিক্সড করা authClient
+import { authClient } from "@/lib/auth-client"; 
 import { toast } from "sonner";
 
 // HeroUI Imports
@@ -28,7 +28,6 @@ const SignInPage = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ইমেইল ও পাসওয়ার্ড দিয়ে লগইন হ্যান্ডলার
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -40,7 +39,7 @@ const SignInPage = () => {
       const { data, error } = await authClient.signIn.email({
         email: user.email,
         password: user.password,
-        callbackURL: "/", // লগইন সফল হলে যেখানে রিডাইরেক্ট হবে
+        callbackURL: "/", 
       });
 
       if (error) {
@@ -62,7 +61,6 @@ const SignInPage = () => {
     }
   };
 
-  // গুগল সোশ্যাল লগইন হ্যান্ডলার
   const handleGoogleSignin = async () => {
     setGoogleLoading(true);
     const id = toast.loading("Redirecting to Google...");
@@ -80,7 +78,7 @@ const SignInPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F1A] text-white flex items-center justify-center lg:p-0 relative overflow-hidden">
+    <div className="mt-[-20] min-h-screen bg-[#0B0F1A] text-white flex items-center justify-center lg:p-0 relative overflow-hidden">
       
       {/* Background Soft Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[150px] pointer-events-none hidden lg:block" />

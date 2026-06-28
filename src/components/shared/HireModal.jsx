@@ -1,14 +1,57 @@
 "use client";
 
+import { useSession } from "@/lib/auth-client";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 const HireModal = ({ open, setOpen, lawyer }) => {
+
+  console.log(lawyer.userId);
+  
+  const { data: session } = useSession();
+
+  const user = session?.user;
+
+  const handleHire = async () => {
+  try {
+    const hiringData = {
+      lawyerId: lawyer.userId,
+      lawyerName: lawyer.name,
+      specialization: lawyer.specialization,
+      rate: lawyer.rate,
+
+      userId: user.id,
+      clientName: user.name,
+      clientEmail: user.email,
+    };
+
+    const res = await fetch("http://localhost:5000/hiring", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(hiringData),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      toast.success("Hiring Request Submitted Successfully");
+      setOpen(false);
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error("Something went wrong");
+  }
+};
+
   // Model state jodi false hoy, tobe framer-motion er AnimatePresence safely handle korbe
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center px-4">
-      
       {/* BACKDROP BLUR WITH ANIMATION */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -38,12 +81,12 @@ const HireModal = ({ open, setOpen, lawyer }) => {
 
         {/* DESCRIPTION CONTENT */}
         <p className="text-gray-400 mt-3 text-sm sm:text-base leading-relaxed">
-          Are you sure you want to send a hiring request to this professional? You will receive updates once they review your case criteria.
+          Are you sure you want to send a hiring request to this professional?
+          You will receive updates once they review your case criteria.
         </p>
 
         {/* ACTION HANDLERS ROW */}
         <div className="flex justify-end items-center gap-3 mt-8">
-          
           {/* CANCEL BUTTON */}
           <motion.button
             whileHover={{ scale: 1.02, bg: "#1e293b" }}
@@ -58,16 +101,11 @@ const HireModal = ({ open, setOpen, lawyer }) => {
           <motion.button
             whileHover={{ scale: 1.02, y: -1 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              // Handle your backend post / integration here
-              console.log("Hired:", lawyer._id);
-              setOpen(false);
-            }}
-            className="px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-sm shadow-[0_4px_15px_rgba(14,165,233,0.3)] hover:shadow-[0_4px_20px_rgba(14,165,233,0.5)] transition-all duration-200"
+            onClick={handleHire}
+            className="px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-sm"
           >
             Confirm Hiring
           </motion.button>
-
         </div>
       </motion.div>
     </div>

@@ -52,9 +52,9 @@ const LawyersPage = () => {
     <section className="min-h-screen m-[-20] bg-[#090b0e] text-white px-6 py-12 sm:px-12 font-sans transition-colors duration-500">
       {/* HEADER SECTION */}
       <div className="mb-8 max-w-7xl mx-auto">
-        <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
-          All Lawyers
-        </h1>
+        <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-green-400 to-indigo-700 bg-clip-text text-transparent">
+  Find Your Lawyer
+</h1>
         <p className="text-gray-400 mt-2 text-sm sm:text-base">
           Find and consult with top rated legal experts.
         </p>
@@ -74,7 +74,7 @@ const LawyersPage = () => {
             }}
             className="w-full bg-[#090b0e] border border-slate-700/70 rounded-l-xl px-4 py-3.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 transition-all duration-300"
           />
-          <button className="bg-sky-500 hover:bg-sky-600 active:scale-95 text-white font-semibold px-7 py-3.5 rounded-r-xl text-sm flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] transition-all duration-300">
+          <button className="bg-green-600 hover:bg-green-700 active:scale-95 text-white font-semibold px-7 py-3.5 rounded-r-xl text-sm flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] transition-all duration-300">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-4 w-4"

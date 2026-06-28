@@ -4,46 +4,116 @@ import { useSession } from "@/lib/auth-client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export default function ProfileCard() {
   const { data: session, isPending } = useSession();
   const user = session?.user;
+  console.log(user?.id);
+  const userId = user?.id;
+  
 
   // 📝 Persistent Form States
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [specialization, setSpecialization] = useState("");
+  const [bio, setBio] = useState("");
+  const [rate, setRate] = useState("");
+  const [status, setStatus] = useState("");
+
+  const [lawyerExists, setLawyerExists] = useState(false);
+
+
 
   // Sync state values automatically as soon as user records resolve
   useEffect(() => {
     if (user) {
       setName(user.name || "");
       setImage(user.image || "");
+
+      if (user.role === "lawyer") {
+        fetch(`http://localhost:5000/lawyers/user/${userId}`)
+          .then((res) => {
+            if (res.status === 404) {
+              setLawyerExists(false);
+              return null;
+            }
+            return res.json();
+            console.log(res.data);
+            
+          })
+          .then((data) => {
+            if (!data) return;
+
+            setLawyerExists(true);
+            setSpecialization(data.specialization || "Corporate Law");
+            setBio(data.bio || "");
+            setRate(data.rate || "");
+            setStatus(data.status || "Available");
+          })
+          .catch((err) => {
+            console.error("Error fetching lawyer profile:", err);
+            toast.error("Failed to load lawyer profile parameters.");
+          });
+      }
     }
   }, [user]);
 
-  // 📡 Update Handler to permanently commit changes via API or Auth Client
+  // 📡 Update Handler to permanently commit changes via API
   const handleSaveChanges = async (e) => {
     e.preventDefault();
+    setSaving(true);
+
+    const lawyerData = {
+      userId: user.id,
+      name,
+      email: user.email,
+      image,
+      specialization,
+      bio,
+      rate: rate ? Number(rate) : 0,
+      status,
+      joinedDate: new Date().toISOString().split("T")[0],
+      hires: 0,
+    };
+
     try {
-      setSaving(true);
-      setSuccess(false);
-      
-      // ⚡ TODO: Connect this with your Auth Client or Express backend patch route
-      // await authClient.updateUser({ name, image });
-      
-      console.log("Permanently committing user structural records:", { name, image });
-      
-      // Artificial delay network block simulation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+      if (!lawyerExists) {
+        // First Time Profile Creation
+        const res = await fetch("http://localhost:5000/lawyers", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(lawyerData),
+        });
+
+        if (!res.ok) throw new Error("Failed to create profile");
+
+        setLawyerExists(true);
+        toast.success("Lawyer profile registered successfully!");
+      } else {
+        // Dynamic Profile Update (Changed method to PATCH to align with updated REST guidelines)
+        const res = await fetch(`http://localhost:5000/lawyers/${userId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(lawyerData),
+        });
+
+        if (!res.ok) throw new Error("Failed to update profile");
+
+        toast.success("Profile sync changes saved locally!");
+      }
+
       setSuccess(true);
-      
-      // Auto-flush the glowing success notice after a brief delay
       setTimeout(() => setSuccess(false), 3000);
-    } catch (error) {
-      console.error("Error writing user modifications to core database cluster:", error);
+    } catch (err) {
+      console.error(err);
+      toast.error("Network runtime cluster synchronizing fault.");
     } finally {
       setSaving(false);
     }
@@ -87,7 +157,6 @@ export default function ProfileCard() {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="bg-[#090D16]/80 backdrop-blur-xl border border-white/[0.06] p-8 md:p-10 rounded-[32px] max-w-xl w-full mx-auto relative overflow-hidden shadow-2xl group transition-all duration-300 hover:border-white/[0.1]"
     >
-      {/* Expanded ambient light spheres to fill the larger card framework layout */}
       <div className="absolute -top-10 -right-10 w-48 h-48 bg-[#05E599]/5 rounded-full blur-3xl pointer-events-none group-hover:bg-[#05E599]/8 transition-all duration-500" />
       <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-[#9D4EDD]/5 rounded-full blur-3xl pointer-events-none group-hover:bg-[#9D4EDD]/8 transition-all duration-500" />
 
@@ -134,7 +203,7 @@ export default function ProfileCard() {
 
         <hr className="border-white/[0.05]" />
 
-        {/* 🛠️ PERMANENT EDITABLE INPUT NODE CORE MATRIX */}
+        {/* 🛠️ EDITABLE INPUT NODE CORE MATRIX */}
         <div className="space-y-5">
           <h3 className="text-xs font-black text-[#05E599] uppercase tracking-widest bg-[#05E599]/5 border border-[#05E599]/10 px-3 py-1.5 rounded-xl inline-block">
             Modify Profile Parameters
@@ -153,6 +222,58 @@ export default function ProfileCard() {
                 className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#05E599]/40 focus:bg-white/[0.04] transition-all duration-300 shadow-inner"
               />
             </div>
+
+            {user.role === "lawyer" && (
+              <>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/50 tracking-wide block pl-1">Specialization</label>
+                  <select
+                    value={specialization}
+                    onChange={(e) => setSpecialization(e.target.value)}
+                    className="w-full bg-[#090D16]/60 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#05E599]/40 focus:bg-[#090D16] transition-all duration-300"
+                  >
+                    <option value="Corporate Law" className="bg-[#090D16] text-white">Corporate Law</option>
+                    <option value="Family Law" className="bg-[#090D16] text-white">Family Law</option>
+                    <option value="Criminal Law" className="bg-[#090D16] text-white">Criminal Law</option>
+                    <option value="Property Law" className="bg-[#090D16] text-white">Property Law</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/50 tracking-wide block pl-1">Status</label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full bg-[#090D16]/60 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#05E599]/40 focus:bg-[#090D16] transition-all duration-300"
+                  >
+                    <option value="Available" className="bg-[#090D16] text-white">Available</option>
+                    <option value="Busy" className="bg-[#090D16] text-white">Busy</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/50 tracking-wide block pl-1">Consultation Fee ($)</label>
+                  <input
+                    type="number"
+                    value={rate}
+                    onChange={(e) => setRate(e.target.value)}
+                    placeholder="Hourly consultation price payload"
+                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#05E599]/40 focus:bg-white/[0.04] transition-all duration-300 shadow-inner"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/50 tracking-wide block pl-1">Bio Description Summary</label>
+                  <textarea
+                    rows={4}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Describe your legal runtime expert fields..."
+                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#05E599]/40 focus:bg-white/[0.04] transition-all duration-300 shadow-inner resize-none"
+                  />
+                </div>
+              </>
+            )}
 
             {/* Input Image picture url field */}
             <div className="space-y-2">
@@ -187,7 +308,7 @@ export default function ProfileCard() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full py-4 rounded-2xl text-sm font-bold bg-gradient-to-r from-[#05E599] to-[#9D4EDD] text-white font-extrabold transition-all duration-300 disabled:opacity-40 shadow-xl shadow-[#05E599]/10 cursor-pointer active:scale-[0.99] hover:brightness-105 flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-2xl text-sm font-bold bg-gradient-to-r from-[#05E599] to-[#9D4EDD] text-white transition-all duration-300 disabled:opacity-40 shadow-xl shadow-[#05E599]/10 cursor-pointer active:scale-[0.99] hover:brightness-105 flex items-center justify-center gap-2"
           >
             {saving ? (
               <>

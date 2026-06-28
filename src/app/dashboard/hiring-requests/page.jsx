@@ -1,46 +1,83 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaHistory, FaUser, FaCalendarAlt, FaCheck, FaTimes, FaInbox, FaEnvelope, FaGavel } from 'react-icons/fa';
+import { useSession } from "@/lib/auth-client";
 
 export default function HiringRequestsPage() {
-  const [requests, setRequests] = useState([
-    {
-      id: "req-01",
-      clientName: "Ahsan Habib",
-      email: "ahsan.habib@gmail.com",
-      requestDate: "2026-06-26",
-      serviceRequested: "Corporate Contract Review",
-      status: "PENDING"
-    },
-    {
-      id: "req-02",
-      clientName: "Nusrat Jahan",
-      email: "nusrat.jahan@hotmail.com",
-      requestDate: "2026-06-25",
-      serviceRequested: "Intellectual Property Consultation",
-      status: "PENDING"
-    },
-    {
-      id: "req-03",
-      clientName: "Siddiqur Rahman",
-      email: "siddiq.legal@yahoo.com",
-      requestDate: "2026-06-20",
-      serviceRequested: "Family Asset Division Dispute",
-      status: "ACCEPTED"
-    }
-  ]);
+  const [requests, setRequests] = useState([]);
 
-  const handleAccept = (id) => {
-    setRequests(prev => prev.map(req => req.id === id ? { ...req, status: "ACCEPTED" } : req));
-  };
+  console.log(requests);
+  
 
-  const handleReject = (id) => {
-    if (window.confirm("Are you sure you want to decline this hiring request?")) {
-      setRequests(prev => prev.map(req => req.id === id ? { ...req, status: "REJECTED" } : req));
-    }
-  };
+  const { data: session } = useSession();
+
+const user = session?.user;
+
+const lawyerId = user?.id;
+
+console.log("Lawyer ID:", lawyerId);
+
+  useEffect(() => {
+  if (!lawyerId) return;
+
+  fetch(`http://localhost:5000/lawyer/hiring/${lawyerId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      setRequests(data);
+      console.log(data, "data"); 
+    })
+    .catch((err) => console.error(err));
+}, [lawyerId]);
+
+  const handleAccept = async (id) => {
+  const res = await fetch(`http://localhost:5000/hiring/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      status: "accepted",
+    }),
+  });
+
+  const data = await res.json();
+
+  if (data.modifiedCount) {
+    setRequests((prev) =>
+      prev.map((item) =>
+        item._id === id
+          ? { ...item, status: "accepted" }
+          : item
+      )
+    );
+  }
+};
+
+const handleReject = async (id) => {
+  const res = await fetch(`http://localhost:5000/hiring/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      status: "rejected",
+    }),
+  });
+
+  const data = await res.json();
+
+  if (data.modifiedCount) {
+    setRequests((prev) =>
+      prev.map((item) =>
+        item._id === id
+          ? { ...item, status: "rejected" }
+          : item
+      )
+    );
+  }
+};
 
   return (
     <motion.div 
@@ -62,34 +99,34 @@ export default function HiringRequestsPage() {
       <div className="grid grid-cols-1 gap-4 md:hidden">
         {requests.map((request) => (
           <div 
-            key={request.id} 
+            key={request._id} 
             className="bg-[#090D16]/90 border border-white/[0.05] rounded-xl p-4 space-y-3 shadow-lg"
           >
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-sm font-bold text-white tracking-wide">{request.clientName}</h3>
-                <p className="text-[11px] text-white/30 flex items-center gap-1 mt-0.5"><FaEnvelope className="text-[10px]" /> {request.email}</p>
+                <h3 className="text-sm font-bold text-white tracking-wide">{request.lawyerName}</h3>
+                <p className="text-[11px] text-white/30 flex items-center gap-1 mt-0.5"><FaEnvelope className="text-[10px]" /> </p>
               </div>
               
               {/* স্ট্যাটাস ব্যাজ */}
               <div>
-                {request.status === "PENDING" && <span className="px-2 py-0.5 rounded text-[9px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/10">PENDING</span>}
-                {request.status === "ACCEPTED" && <span className="px-2 py-0.5 rounded text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">ACCEPTED</span>}
-                {request.status === "REJECTED" && <span className="px-2 py-0.5 rounded text-[9px] font-black bg-red-500/10 text-red-400 border border-red-500/10">REJECTED</span>}
+                {request.status === "pending" && <span className="px-2 py-0.5 rounded text-[9px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/10">PENDING</span>}
+                {request.status === "accepted" && <span className="px-2 py-0.5 rounded text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">ACCEPTED</span>}
+                {request.status === "rejected" && <span className="px-2 py-0.5 rounded text-[9px] font-black bg-red-500/10 text-red-400 border border-red-500/10">REJECTED</span>}
               </div>
             </div>
 
             <div className="bg-white/[0.01] p-2.5 rounded-lg border border-white/[0.02] text-xs space-y-1">
-              <p className="text-white/60 font-medium flex items-center gap-1.5"><FaGavel className="text-[10px] text-emerald-400" /> {request.serviceRequested}</p>
-              <p className="text-white/30 font-mono text-[10px] flex items-center gap-1.5"><FaCalendarAlt className="text-[10px]" /> {request.requestDate}</p>
+              <p className="text-white/60 font-medium flex items-center gap-1.5"><FaGavel className="text-[10px] text-emerald-400" /> {request.specialization}</p>
+              <p className="text-white/30 font-mono text-[10px] flex items-center gap-1.5"><FaCalendarAlt className="text-[10px]" />{request.hiringDate}</p>
             </div>
 
             {/* অ্যাকশন বাটন ইন্টারফেস */}
             <div className="flex justify-end gap-2 pt-1">
-              {request.status === "PENDING" ? (
+              {request.status === "pending" ? (
                 <>
-                  <button onClick={() => handleReject(request.id)} className="w-1/2 py-2 rounded-lg text-xs font-bold bg-white/5 text-white/60 hover:bg-red-500/10 hover:text-red-400 border border-white/5 transition-all">Reject</button>
-                  <button onClick={() => handleAccept(request.id)} className="w-1/2 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all">Accept</button>
+                  <button onClick={() => handleReject(request._id)} className="w-1/2 py-2 rounded-lg text-xs font-bold bg-white/5 text-white/60 hover:bg-red-500/10 hover:text-red-400 border border-white/5 transition-all">Reject</button>
+                  <button  onClick={() => handleAccept(request._id)} className="w-1/2 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all">Accept</button>
                 </>
               ) : (
                 <span className="text-xs text-white/20 italic pr-1 py-1">Action Processed</span>
@@ -113,26 +150,26 @@ export default function HiringRequestsPage() {
           </thead>
           <tbody className="divide-y divide-white/[0.02] text-sm text-white/80">
             {requests.map((request) => (
-              <tr key={request.id} className="hover:bg-white/[0.01] transition-colors duration-150 group">
+              <tr key={request._id} className="hover:bg-white/[0.01] transition-colors duration-150 group">
                 <td className="p-4 pl-6">
                   <div className="flex flex-col">
-                    <span className="font-bold text-white tracking-wide group-hover:text-emerald-400 transition-colors">{request.clientName}</span>
+                    <span className="font-bold text-white tracking-wide group-hover:text-emerald-400 transition-colors">{request.lawyerName}</span>
                     <span className="text-[11px] text-white/30 font-medium mt-0.5">{request.email}</span>
                   </div>
                 </td>
-                <td className="p-4 text-white/70 font-medium">{request.serviceRequested}</td>
-                <td className="p-4 text-white/40 font-mono font-medium">{request.requestDate}</td>
+                <td className="p-4 text-white/70 font-medium">{request.specialization}</td>
+                <td className="p-4 text-white/40 font-mono font-medium">{request.hiringDate}</td>
                 <td className="p-4 text-center">
-                  {request.status === "PENDING" && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/10">⏳ PENDING</span>}
-                  {request.status === "ACCEPTED" && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">✓ ACCEPTED</span>}
-                  {request.status === "REJECTED" && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-red-500/10 text-red-400 border border-red-500/10">✕ REJECTED</span>}
+                  {request.status === "pending" && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/10">⏳ PENDING</span>}
+                  {request.status === "accepted" && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">✓ ACCEPTED</span>}
+                  {request.status === "rejected" && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-red-500/10 text-red-400 border border-red-500/10">✕ REJECTED</span>}
                 </td>
                 <td className="p-4 pr-6 text-right">
                   <div className="flex items-center justify-end gap-2">
-                    {request.status === "PENDING" ? (
+                    {request.status === "pending" ? (
                       <>
-                        <button onClick={() => handleAccept(request.id)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-all cursor-pointer flex items-center gap-1"><FaCheck className="text-[10px]" /> Accept</button>
-                        <button onClick={() => handleReject(request.id)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white/60 bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/5 transition-all cursor-pointer flex items-center gap-1"><FaTimes className="text-[10px]" /> Reject</button>
+                        <button onClick={() => handleAccept(request._id)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-all cursor-pointer flex items-center gap-1"><FaCheck className="text-[10px]" /> Accept</button>
+                        <button onClick={() => handleReject(request._id)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white/60 bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/5 transition-all cursor-pointer flex items-center gap-1"><FaTimes className="text-[10px]" /> Reject</button>
                       </>
                     ) : (
                       <span className="text-xs text-white/20 font-medium italic pr-2">Action Processed</span>
