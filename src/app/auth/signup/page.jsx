@@ -12,25 +12,31 @@ import { toast } from "sonner";
 import {
   Button,
   Form,
-  Input,
-  Label,
   TextField,
+  Label,
+  Input,
   FieldError,
   Spinner,
   Description,
-  RadioGroup,
-  Radio,
 } from "@heroui/react";
 
 import { FcGoogle } from "react-icons/fc";
-import { FaBalanceScale } from "react-icons/fa";
+import { FaBalanceScale, FaCloudUploadAlt } from "react-icons/fa";
 import Logo from "@/components/shared/Logo";
 
 const SignUpPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [role, setRole] = useState("user"); 
+  const [role, setRole] = useState("user");
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -38,14 +44,34 @@ const SignUpPage = () => {
     try {
       const formData = new FormData(e.currentTarget);
       const user = Object.fromEntries(formData.entries());
+      
+      let imageUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"; 
+
+      if (selectedFile) {
+        const imgFormData = new FormData();
+        imgFormData.append("image", selectedFile);
+
+        const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY; 
+        
+        const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+          method: "POST",
+          body: imgFormData,
+        });
+
+        const imgbbData = await imgbbResponse.json();
+
+        if (imgbbData.success) {
+          imageUrl = imgbbData.data.display_url; 
+        } else {
+          toast.error("Failed to host profile image. Using default.");
+        }
+      }
 
       const { data, error } = await authClient.signUp.email({
         email: user.email,
         password: user.password,
         name: user.name,
-        image:
-          user.image ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100",
+        image: imageUrl,
         role: role,
         autoSignIn: false,
       });
@@ -63,6 +89,7 @@ const SignUpPage = () => {
         }, 1000);
       }
     } catch (err) {
+      console.error(err);
       toast.error("Failed to create account!");
     } finally {
       setLoading(false);
@@ -70,7 +97,7 @@ const SignUpPage = () => {
   };
 
   const handleGoogleSignin = async () => {
-    // প্রয়োজন হলে গুগল সাইন-ইন লজিক এখানে লিখবেন
+    // গুগল সাইন-ইন লজিক এখানে
   };
 
   return (
@@ -80,7 +107,7 @@ const SignUpPage = () => {
 
       {/* Main Split Container */}
       <div className="w-full min-h-screen lg:min-h-[90vh] lg:max-w-6xl lg:border lg:border-white/10 lg:rounded-3xl lg:m-6 grid grid-cols-1 lg:grid-cols-12 overflow-hidden bg-white/[0.01] backdrop-blur-xl shadow-2xl relative z-10">
-        {/* ---------------- LEFT SIDE: PREMIUM IMAGE PANEL ---------------- */}
+        {/* LEFT SIDE: PREMIUM IMAGE PANEL */}
         <div className="hidden lg:flex lg:col-span-5 relative flex-col justify-between p-12 overflow-hidden border-r border-white/10">
           <Image
             src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80"
@@ -90,13 +117,8 @@ const SignUpPage = () => {
             unoptimized
             className="object-cover object-center absolute inset-0 -z-20"
           />
-          {/* Image Dark Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#0B0F1A]/70 via-[#0B0F1A]/80 to-[#0B0F1A]/95 -z-10" />
-
-          {/* Top Brand Logo */}
           <Logo />
-
-          {/* Bottom Dynamic Quote */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -107,13 +129,12 @@ const SignUpPage = () => {
               Your Gateway to Trusted <br /> Legal Counsel.
             </h3>
             <p className="text-xs text-white/50 leading-relaxed max-w-sm">
-              Join thousands of citizens and businesses securing top-tier,
-              token-verified contracts with elite legal experts.
+              Join thousands of citizens and businesses securing top-tier, token-verified contracts with elite legal experts.
             </p>
           </motion.div>
         </div>
 
-        {/* ---------------- RIGHT SIDE: HEROUI FORM ---------------- */}
+        {/* RIGHT SIDE: HEROUI FORM */}
         <div className="col-span-1 lg:col-span-7 flex items-center justify-center p-8 sm:p-12 md:p-16">
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -121,7 +142,6 @@ const SignUpPage = () => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-md space-y-7"
           >
-            {/* Header */}
             <div className="text-center lg:text-left">
               <div className="w-12 h-12 bg-gradient-to-tr from-emerald-400 to-purple-500 rounded-xl flex items-center justify-center mx-auto lg:mx-0 mb-4 shadow-lg shadow-emerald-500/10 lg:hidden">
                 <FaBalanceScale className="text-black text-xl" />
@@ -131,7 +151,7 @@ const SignUpPage = () => {
               </h1>
             </div>
 
-            {/* HeroUI Form */}
+            {/* Form */}
             <Form onSubmit={onSubmit} className="space-y-4">
               <TextField isRequired name="name" className="w-full">
                 <Label className="text-xs text-white/60 font-medium mb-1.5 block">
@@ -141,20 +161,29 @@ const SignUpPage = () => {
                 <FieldError className="text-xs text-rose-400 mt-1" />
               </TextField>
 
-              <TextField name="image" className="w-full">
+              {/* 🆕 MODERN DRAG & DROP FILE UPLOADER */}
+              <div className="w-full">
                 <Label className="text-xs text-white/60 font-medium mb-1.5 block">
-                  Profile Image URL
+                  Profile Image
                 </Label>
-                <Input placeholder="https://..." className="text-white" />
-                <FieldError className="text-xs text-rose-400 mt-1" />
-              </TextField>
+                <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-white/20 rounded-xl cursor-pointer bg-white/[0.02] hover:bg-white/[0.05] hover:border-emerald-500/50 transition-all group">
+                  <div className="flex flex-col items-center justify-center pt-3 pb-3">
+                    <FaCloudUploadAlt className="text-xl text-white/40 group-hover:text-emerald-400 transition-colors mb-1" />
+                    <p className="text-xs text-white/70 font-medium truncate max-w-[280px]">
+                      {selectedFile ? selectedFile.name : "Click to upload image"}
+                    </p>
+                    <p className="text-[10px] text-white/30 mt-0.5">PNG, JPG or WEBP</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
 
-              <TextField
-                isRequired
-                name="email"
-                type="email"
-                className="w-full"
-              >
+              <TextField isRequired name="email" type="email" className="w-full">
                 <Label className="text-xs text-white/60 font-medium mb-1.5 block">
                   Email
                 </Label>
@@ -169,8 +198,7 @@ const SignUpPage = () => {
                 className="w-full"
                 validate={(value) => {
                   if (value.length < 8) return "Min 8 characters required";
-                  if (!/[A-Z]/.test(value))
-                    return "Must include uppercase letter";
+                  if (!/[A-Z]/.test(value)) return "Must include uppercase letter";
                   if (!/[0-9]/.test(value)) return "Must include number";
                   return null;
                 }}
@@ -185,19 +213,13 @@ const SignUpPage = () => {
                 <FieldError className="text-xs text-rose-400 mt-1" />
               </TextField>
 
+              {/* Role Picker */}
               <div className="flex flex-col gap-2 w-full pt-1">
                 <Label className="text-xs text-white/60 font-medium block">
                   Join As
                 </Label>
-
                 <div className="flex flex-col sm:flex-row gap-4 mt-2">
-                  <label
-                    className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all ${
-                      role === "user"
-                        ? "border-emerald-400 bg-emerald-400/10"
-                        : "border-white/10 bg-white/5"
-                    }`}
-                  >
+                  <label className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all ${role === "user" ? "border-emerald-400 bg-emerald-400/10" : "border-white/10 bg-white/5"}`}>
                     <input
                       type="radio"
                       name="role"
@@ -206,18 +228,10 @@ const SignUpPage = () => {
                       onChange={(e) => setRole(e.target.value)}
                       className="w-4 h-4 accent-emerald-400"
                     />
-                    <span className="text-sm text-white">
-                      Client / General User
-                    </span>
+                    <span className="text-sm text-white">Client / General User</span>
                   </label>
 
-                  <label
-                    className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all ${
-                      role === "lawyer"
-                        ? "border-purple-500 bg-purple-500/10"
-                        : "border-white/10 bg-white/5"
-                    }`}
-                  >
+                  <label className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all ${role === "lawyer" ? "border-purple-500 bg-purple-500/10" : "border-white/10 bg-white/5"}`}>
                     <input
                       type="radio"
                       name="role"
@@ -226,15 +240,9 @@ const SignUpPage = () => {
                       onChange={(e) => setRole(e.target.value)}
                       className="w-4 h-4 accent-purple-500"
                     />
-                    <span className="text-sm text-white">
-                      Professional Lawyer
-                    </span>
+                    <span className="text-sm text-white">Professional Lawyer</span>
                   </label>
                 </div>
-
-                <p className="text-xs text-white/40 mt-1">
-                  Selected Role: {role}
-                </p>
               </div>
 
               <Button
@@ -245,7 +253,7 @@ const SignUpPage = () => {
                 {loading ? (
                   <div className="flex items-center gap-2 justify-center">
                     <Spinner size="sm" color="current" />
-                    <span>Creating...</span>
+                    <span>Uploading & Registering...</span>
                   </div>
                 ) : (
                   "Create Account"
@@ -256,13 +264,11 @@ const SignUpPage = () => {
             {/* Divider */}
             <div className="flex items-center gap-3 my-5">
               <div className="h-px bg-white/10 w-full" />
-              <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">
-                OR
-              </span>
+              <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">OR</span>
               <div className="h-px bg-white/10 w-full" />
             </div>
 
-            {/* Google Login Button */}
+            {/* Google */}
             <Button
               onClick={handleGoogleSignin}
               disabled={googleLoading}
@@ -272,13 +278,9 @@ const SignUpPage = () => {
               {googleLoading ? "Redirecting..." : "Continue with Google"}
             </Button>
 
-            {/* Switch to Login */}
             <p className="text-center lg:text-left text-xs text-white/40 mt-6">
               Already have an account?{" "}
-              <Link
-                href="/auth/login"
-                className="text-emerald-400 hover:underline font-medium"
-              >
+              <Link href="/auth/login" className="text-emerald-400 hover:underline font-medium">
                 Log In
               </Link>
             </p>

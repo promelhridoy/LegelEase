@@ -7,6 +7,7 @@ import PlatformChart from '@/components/shared/PlatformChart';
 
 export default function AnalyticsPage() {
   const [stats, setStats] = useState([]);
+  
   // 📝 Dummy Data Structure for Analytics Metrics
   useEffect(() => {
   Promise.all([
