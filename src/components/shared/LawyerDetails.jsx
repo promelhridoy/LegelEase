@@ -12,6 +12,7 @@ const LawyerDetails = ({ id }) => {
   const [lawyer, setLawyer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
+  const [services, setServices] = useState([]);
   
   // Local state arrays holding user submitted reviews
   const [comments, setComments] = useState([]);
@@ -35,15 +36,24 @@ const LawyerDetails = ({ id }) => {
   useEffect(() => {
     // Primary API query targeting centralized database
     fetch(`http://localhost:5000/lawyers/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setLawyer(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching lawyer:", err);
-        setLoading(false);
-      });
+  .then((res) => res.json())
+  .then(async (data) => {
+    setLawyer(data);
+
+    const serviceRes = await fetch(
+      `http://localhost:5000/services/${data.userId}`
+    );
+
+    const serviceData = await serviceRes.json();
+
+    setServices(serviceData);
+
+    setLoading(false);
+  })
+  .catch((err) => {
+    console.error("Error fetching lawyer:", err);
+    setLoading(false);
+  });
 
     // 📡 FETCH COMMENTS FOR THIS SPECIFIC LAWYER
     fetch(`http://localhost:5000/comments/${id}`)
@@ -245,6 +255,63 @@ const LawyerDetails = ({ id }) => {
             </div>
           </motion.div>
         </div>
+
+
+        <div className="bg-[#11141c]/90 border border-slate-800/80 rounded-3xl p-6 sm:p-8">
+  <h2 className="text-2xl font-bold mb-6">
+    Services Offered
+  </h2>
+
+  {services.length === 0 ? (
+    <p className="text-gray-500">
+      No services available.
+    </p>
+  ) : (
+    <div className="grid md:grid-cols-2 gap-6">
+      {services.map((service) => (
+        <div
+          key={service._id}
+          className="bg-[#090b0e] border border-slate-800 rounded-2xl overflow-hidden"
+        >
+          {service.image && (
+            <img
+              src={service.image}
+              alt={service.name}
+              className="w-full h-48 object-cover"
+            />
+          )}
+
+          <div className="p-5">
+            <span className="text-xs bg-sky-500/10 text-sky-400 px-2 py-1 rounded">
+              {service.specialization}
+            </span>
+
+            <h3 className="text-xl font-bold mt-3">
+              {service.name}
+            </h3>
+
+            <p className="text-gray-400 mt-2">
+              {service.bio}
+            </p>
+
+            <div className="flex justify-between items-center mt-5">
+              <span className="text-green-400 font-bold">
+                ${service.fee}
+              </span>
+
+              <button
+                onClick={() => setOpenModal(true)}
+                className="bg-sky-500 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-sky-600"
+              >
+                Hire Service
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 
         {/* FEEDBACK ENGINE & REVIEWS TIMELINE BLOCK */}
         <div className="bg-[#11141c]/90 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-md space-y-6">
