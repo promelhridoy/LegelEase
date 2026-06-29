@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserTie, FaGavel, FaDollarSign, FaCalendarAlt, FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaCreditCard } from 'react-icons/fa';
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import PaymentModal from '@/components/shared/PaymentModal';
 
 export default function HiringHistoryPage() {
@@ -14,9 +14,19 @@ export default function HiringHistoryPage() {
   const [hiringRecords, setHiringRecords] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null); 
 
-  const fetchHiringHistory = () => {
+  const fetchHiringHistory = async () => {
+
+    const {data:tokenData} = await authClient.token()
+            console.log(tokenData, "token");
+
     if (!userId) return;
-    fetch(`http://localhost:5000/hiring/${userId}`)
+    fetch(`http://localhost:5000/hiring/${userId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      authorization: `Bearer ${tokenData?.token}`
+    }
+  })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load hiring history");
         return res.json();

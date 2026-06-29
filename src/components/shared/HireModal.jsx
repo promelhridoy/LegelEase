@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -25,10 +25,14 @@ const HireModal = ({ open, setOpen, lawyer }) => {
       clientEmail: user.email,
     };
 
+    const {data:tokenData} = await authClient.token()
+            console.log(tokenData, "token");
+
     const res = await fetch("http://localhost:5000/hiring", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        authorization: `Bearer ${tokenData?.token}`
       },
       body: JSON.stringify(hiringData),
     });

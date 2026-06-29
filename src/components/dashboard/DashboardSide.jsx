@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSession } from "@/lib/auth-client"; 
 import { 
   FaUser, FaHistory, FaCommentDots, FaBriefcase, 
@@ -14,9 +14,14 @@ function DashboardSide() {
     const pathname = usePathname();
     const { data: session, isPending } = useSession();
     const user = session?.user;
+    
+    const [mounted, setMounted] = useState(false);
 
-    // 🔄 Unified Skeleton Loader Framework matching layout constraints
-    if (isPending) {
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted || isPending) {
         return (
             <aside className="hidden lg:block w-64 shrink-0 border-r border-white/5 p-5 bg-[#090D16] h-screen fixed left-0 top-0 pt-24 z-20 animate-pulse">
                 <div className="h-8 bg-white/5 rounded-lg mb-8 w-3/4" />
@@ -53,7 +58,6 @@ function DashboardSide() {
 
     return (
         /* 🖥️ Fixed Dashboard Core Sidebar Window */
-        /* Changed 'hidden md:block' to 'hidden lg:block' to cleanly match layout architecture boundaries */
         <aside className="hidden lg:block w-64 shrink-0 border-r border-white/5 p-5 bg-[#090D16] fixed left-0 top-0 h-screen pt-24 z-20">
             <div className="flex flex-col justify-between h-full pb-4">
                 <div className="space-y-6">

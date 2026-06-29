@@ -13,7 +13,7 @@ import {
   FaCheck,
   FaExclamationTriangle,
 } from "react-icons/fa";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client"; // 🔑 authClient এখানে যুক্ত করা হয়েছে
 import LawyerSkeleton from "@/components/shared/LawyerSkeleton";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -36,24 +36,37 @@ export default function MyCommentPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
 
+  // 🔄 Fetch user comments with token verification
   useEffect(() => {
     if (!userId) return;
 
-    fetch(`http://localhost:5000/comments/user/${userId}`)
-      .then((res) => {
+    const fetchComments = async () => {
+      try {
+        const { data: tokenData } = await authClient.token();
+        const token = tokenData?.token || tokenData;
+
+        const res = await fetch(`http://localhost:5000/comments/user/${userId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { "Authorization": `Bearer ${token}` }),
+          },
+        });
+
         if (!res.ok) throw new Error("Failed to load user comments");
-        return res.json();
-      })
-      .then((data) => {
+        
+        const data = await res.json();
         setComments(Array.isArray(data) ? data : []);
-        loading && setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error fetching comments:", err);
         toast.error("Failed to load your comments. Please refresh!");
         setComments([]);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchComments();
   }, [userId]);
 
   // 🔄 Trigger Edit Form Modal
@@ -76,12 +89,16 @@ export default function MyCommentPage() {
     const toastId = toast.loading("Updating your secure review...");
 
     try {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token || tokenData;
+
       const response = await fetch(
         `http://localhost:5000/comments/${currentComment._id || currentComment.id}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            ...(token && { "Authorization": `Bearer ${token}` }),
           },
           body: JSON.stringify(updatedData),
         },
@@ -107,7 +124,7 @@ export default function MyCommentPage() {
     }
   };
 
-  // 🗑️ Trigger Custom Delete Modal Instead of window.confirm
+  // 🗑️ Trigger Custom Delete Modal
   const openDeleteModal = (id) => {
     setCommentToDelete(id);
     setIsDeleteModalOpen(true);
@@ -117,11 +134,17 @@ export default function MyCommentPage() {
     if (!commentToDelete) return;
 
     const toastId = toast.loading("Permanently deleting review...");
-    setIsDeleteModalOpen(false); // মোডালটি সাথে সাথে বন্ধ করার জন্য
+    setIsDeleteModalOpen(false);
 
     try {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token || tokenData;
+
       const response = await fetch(`http://localhost:5000/comments/${commentToDelete}`, {
         method: "DELETE",
+        headers: {
+          ...(token && { "Authorization": `Bearer ${token}` }),
+        },
       });
 
       if (response.ok) {
@@ -163,12 +186,10 @@ export default function MyCommentPage() {
       {/* HEADER SECTION */}
       <div className="space-y-1.5 px-1">
         <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
-          <FaCommentDots className="text-emerald-400 text-xl md:text-2xl" /> My
-          Comments
+          <FaCommentDots className="text-emerald-400 text-xl md:text-2xl" /> My Comments
         </h1>
         <p className="text-xs md:text-sm text-white/40 font-medium">
-          Manage, update, or remove reviews and feedback you have posted on
-          lawyer profiles.
+          Manage, update, or remove reviews and feedback you have posted on lawyer profiles.
         </p>
       </div>
 
@@ -191,8 +212,8 @@ export default function MyCommentPage() {
                   <div className="flex items-center gap-2.5 min-w-0">
                     {comment.lawyerImage ? (
                       <Image
-                        src={comment?.lawyerImage || "/default-avatar.png"}
-                        alt={comment?.lawyerName || "Lawyer Profile"}
+                        src={comment.lawyerImage || "/default-avatar.png"}
+                        alt={comment.lawyerName || "Lawyer Profile"}
                         width={32}
                         height={32}
                         className="w-8 h-8 rounded-lg object-cover border border-white/5 shrink-0 transition-transform duration-300 hover:scale-110"
@@ -343,7 +364,7 @@ export default function MyCommentPage() {
         )}
       </AnimatePresence>
 
-      {/* 🗑️ NEW POP-UP CUSTOM DELETE CONFIRMATION MODAL */}
+      {/* 🗑️ POP-UP CUSTOM DELETE CONFIRMATION MODAL */}
       <AnimatePresence>
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

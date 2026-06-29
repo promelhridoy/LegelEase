@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -66,6 +66,9 @@ export default function ProfileCard() {
     e.preventDefault();
     setSaving(true);
 
+     const {data:tokenData} = await authClient.token()
+        console.log(tokenData, "token");
+
     const lawyerData = {
       userId: user.id,
       name,
@@ -79,6 +82,8 @@ export default function ProfileCard() {
       hires: 0,
     };
 
+
+
     try {
       if (!lawyerExists) {
         // First Time Profile Creation
@@ -86,6 +91,7 @@ export default function ProfileCard() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            authorization: `Bearer ${tokenData?.token}`
           },
           body: JSON.stringify(lawyerData),
         });
@@ -102,6 +108,7 @@ export default function ProfileCard() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(lawyerData),
+          authorization: `Bearer ${tokenData?.token}`
         });
 
         if (!res.ok) throw new Error("Failed to update profile");

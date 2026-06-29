@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaUserTie, FaCalendarAlt, FaPaperPlane, FaLock, FaComments } from "react-icons/fa";
 import HireModal from "./HireModal";
 import LawyerSkeleton from "./LawyerSkeleton";
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 
 const LawyerDetails = ({ id }) => {
   const [lawyer, setLawyer] = useState(null);
@@ -78,8 +78,12 @@ const LawyerDetails = ({ id }) => {
 
   // 📡 HANDLER PROCESSING LIVE SUBMISSIONS TO BACKEND
   const handlePostComment = async (e) => {
+     
     e.preventDefault();
     if (!newComment.trim() || !isLoggedIn) return;
+
+    const {data:tokenData} = await authClient.token()
+    console.log(tokenData, "token");
 
     // Constructing dataset to sync flawlessly with MongoDB using active session records
     const freshCommentObj = {
@@ -95,7 +99,8 @@ const LawyerDetails = ({ id }) => {
       const response = await fetch(`http://localhost:5000/comments`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          authorization: `Bearer ${tokenData?.token}`
         },
         body: JSON.stringify(freshCommentObj)
       });
@@ -274,11 +279,15 @@ const LawyerDetails = ({ id }) => {
           className="bg-[#090b0e] border border-slate-800 rounded-2xl overflow-hidden"
         >
           {service.image && (
-            <img
-              src={service.image}
-              alt={service.name}
-              className="w-full h-48 object-cover"
-            />
+          
+
+<Image
+  src={service?.image || "/placeholder-service.jpg"}
+  alt={service?.name || "Service"}
+  width={500}
+  height={300}
+  className="w-full h-48 object-cover transition-transform duration-500 hover:scale-110"
+/>
           )}
 
           <div className="p-5">

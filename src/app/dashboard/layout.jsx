@@ -1,6 +1,5 @@
 "use client";
 
-// import CreateLawyerModal from "@/components/dashboard/CreateLawyerModal";
 import DashboardSide from "@/components/dashboard/DashboardSide";
 
 export default function DashboardLayout({ children }) {
@@ -15,12 +14,7 @@ export default function DashboardLayout({ children }) {
         </div>
       </main>
 
-      {/* {showModal && (
-        <CreateLawyerModal
-          user={user}
-          onSuccess={() => setShowModal(false)}
-        />
-      )} */}
+     
     </div>
   );
 }
