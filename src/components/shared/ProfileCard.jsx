@@ -106,9 +106,10 @@ export default function ProfileCard() {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            authorization: `Bearer ${tokenData?.token}`
           },
           body: JSON.stringify(lawyerData),
-          authorization: `Bearer ${tokenData?.token}`
+          
         });
 
         if (!res.ok) throw new Error("Failed to update profile");
