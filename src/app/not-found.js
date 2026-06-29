@@ -7,7 +7,7 @@ import { FaHome, FaExclamationTriangle } from 'react-icons/fa';
 
 export default function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-[#040810] flex items-center justify-center px-4 relative overflow-hidden select-none">
+    <div className="min-h-screen mt-[-20] bg-[#040810] flex items-center justify-center px-4 relative overflow-hidden select-none">
       
       {/* BACKGROUND GLOW SHAPES (Theme Consistent) */}
       <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />

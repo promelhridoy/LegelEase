@@ -97,7 +97,26 @@ const SignUpPage = () => {
   };
 
   const handleGoogleSignin = async () => {
-    // গুগল সাইন-ইন লজিক এখানে
+    setGoogleLoading(true);
+    const id = toast.loading("Redirecting to Google...");
+
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard", 
+        newUserOptions: {
+          data: {
+            role: role, 
+          }
+        }
+      });
+
+      toast.success("Redirecting...", { id });
+    } catch (error) {
+      console.error(error);
+      toast.error("Google Sign In Failed!", { id });
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -280,7 +299,8 @@ const SignUpPage = () => {
 
             <p className="text-center lg:text-left text-xs text-white/40 mt-6">
               Already have an account?{" "}
-              <Link href="/auth/login" className="text-emerald-400 hover:underline font-medium">
+              
+              <Link href="/auth/signin" className="text-emerald-400 hover:underline font-medium">
                 Log In
               </Link>
             </p>
