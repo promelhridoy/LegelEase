@@ -12,7 +12,7 @@ const CheckoutForm = ({ hiringData, userEmail, closeModal }) => {
 
   useEffect(() => {
     if (hiringData?.rate > 0) {
-      fetch('http://localhost:5000/create-payment-intent', {
+      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/create-payment-intent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fee: hiringData.rate }),
@@ -61,7 +61,7 @@ const CheckoutForm = ({ hiringData, userEmail, closeModal }) => {
           hiringId: hiringData._id, 
         };
 
-        fetch('http://localhost:5000/payments', {
+        fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/payments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(paymentPayload),

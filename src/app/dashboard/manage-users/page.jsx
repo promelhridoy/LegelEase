@@ -10,7 +10,7 @@ export default function ManageUserPage() {
   // 1. Functional Change Role Handler (Toggle between User & Lawyer)
 
   useEffect(() => {
-  fetch("http://localhost:5000/user")
+  fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/user`)
     .then((res) => res.json())
     .then((data) =>
       setUsers(
@@ -25,7 +25,7 @@ export default function ManageUserPage() {
   const nextRole = currentRole === "user" ? "lawyer" : "user";
 
   const res = await fetch(
-    `http://localhost:5000/user/role/${id}`,
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/user/role/${id}`,
     {
       method: "PATCH",
       headers: {
@@ -53,7 +53,7 @@ export default function ManageUserPage() {
   // 2. Functional Delete User Handler
   const handleDeleteUser = async (id) => {
   const res = await fetch(
-    `http://localhost:5000/user/${id}`,
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/user/${id}`,
     {
       method: "DELETE",
     }

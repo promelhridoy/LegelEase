@@ -44,7 +44,7 @@ export default function Services() {
       try {
         setLoading(true);
 
-        const res = await fetch(`http://localhost:5000/services/${lawyerId}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/services/${lawyerId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -150,7 +150,7 @@ export default function Services() {
           createdAt: new Date(),
         };
 
-        const res = await fetch("http://localhost:5000/services", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/services`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -170,7 +170,7 @@ export default function Services() {
         }
       } else {
         // Handle PATCH update operations
-        const res = await fetch(`http://localhost:5000/services/${currentServiceId}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/services/${currentServiceId}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -225,7 +225,7 @@ export default function Services() {
       const { data: tokenData } = await authClient.token();
       const token = tokenData?.token || tokenData;
 
-      const res = await fetch(`http://localhost:5000/services/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/services/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

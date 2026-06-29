@@ -25,10 +25,10 @@ export default function AnalyticsPage() {
         };
 
         const [users, lawyers, hires, revenue] = await Promise.all([
-          fetch("http://localhost:5000/analytics/users", { method: "GET", headers }).then((res) => res.json()),
-          fetch("http://localhost:5000/analytics/lawyers", { method: "GET", headers }).then((res) => res.json()),
-          fetch("http://localhost:5000/analytics/hires", { method: "GET", headers }).then((res) => res.json()),
-          fetch("http://localhost:5000/analytics/revenue", { method: "GET", headers }).then((res) => res.json()),
+          fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/analytics/users`, { method: "GET", headers }).then((res) => res.json()),
+          fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/analytics/lawyers`, { method: "GET", headers }).then((res) => res.json()),
+          fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/analytics/hires`, { method: "GET", headers }).then((res) => res.json()),
+          fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/analytics/revenue`, { method: "GET", headers }).then((res) => res.json()),
         ]);
 
         setStats([

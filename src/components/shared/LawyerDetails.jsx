@@ -35,13 +35,13 @@ const LawyerDetails = ({ id }) => {
 
   useEffect(() => {
     // Primary API query targeting centralized database
-    fetch(`http://localhost:5000/lawyers/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/lawyers/${id}`)
   .then((res) => res.json())
   .then(async (data) => {
     setLawyer(data);
 
     const serviceRes = await fetch(
-      `http://localhost:5000/services/${data.userId}`
+      `${process.env.NEXT_PUBLIC_SERVER_URL}/services/${data.userId}`
     );
 
     const serviceData = await serviceRes.json();
@@ -56,7 +56,7 @@ const LawyerDetails = ({ id }) => {
   });
 
     // 📡 FETCH COMMENTS FOR THIS SPECIFIC LAWYER
-    fetch(`http://localhost:5000/comments/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/comments/${id}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Server responded with status ${res.status}`);
@@ -96,7 +96,7 @@ const LawyerDetails = ({ id }) => {
     };
 
     try {
-      const response = await fetch(`http://localhost:5000/comments`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -45,7 +45,7 @@ export default function MyCommentPage() {
         const { data: tokenData } = await authClient.token();
         const token = tokenData?.token || tokenData;
 
-        const res = await fetch(`http://localhost:5000/comments/user/${userId}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/comments/user/${userId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -93,7 +93,7 @@ export default function MyCommentPage() {
       const token = tokenData?.token || tokenData;
 
       const response = await fetch(
-        `http://localhost:5000/comments/${currentComment._id || currentComment.id}`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/comments/${currentComment._id || currentComment.id}`,
         {
           method: "PATCH",
           headers: {
@@ -140,7 +140,7 @@ export default function MyCommentPage() {
       const { data: tokenData } = await authClient.token();
       const token = tokenData?.token || tokenData;
 
-      const response = await fetch(`http://localhost:5000/comments/${commentToDelete}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/comments/${commentToDelete}`, {
         method: "DELETE",
         headers: {
           ...(token && { "Authorization": `Bearer ${token}` }),

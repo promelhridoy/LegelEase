@@ -20,7 +20,7 @@ export default function HiringHistoryPage() {
             console.log(tokenData, "token");
 
     if (!userId) return;
-    fetch(`http://localhost:5000/hiring/${userId}`, {
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/hiring/${userId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

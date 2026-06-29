@@ -31,7 +31,7 @@ const LawyersPage = () => {
         }
 
         const res = await fetch(
-          `http://localhost:5000/lawyers?${params.toString()}`,
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/lawyers?${params.toString()}`,
         );
 
         const data = await res.json();

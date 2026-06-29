@@ -10,7 +10,7 @@ const FeaturedLawyersPage = () => {
   useEffect(() => {
     const fetchLawyers = async () => {
       try {
-        const res = await fetch("http://localhost:5000/lawyers");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/lawyers`);
         const data = await res.json();
         setLawyers(data.lawyers);
         console.log(data)

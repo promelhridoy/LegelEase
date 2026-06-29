@@ -11,7 +11,7 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/all-payments') 
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/all-payments`) 
       .then((res) => {
         if (!res.ok) throw new Error("Network issues");
         return res.json();

@@ -34,7 +34,7 @@ export default function ProfileCard() {
       setImage(user.image || "");
 
       if (user.role === "lawyer") {
-        fetch(`http://localhost:5000/lawyers/user/${userId}`)
+        fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/lawyers/user/${userId}`)
           .then((res) => {
             if (res.status === 404) {
               setLawyerExists(false);
@@ -87,7 +87,7 @@ export default function ProfileCard() {
     try {
       if (!lawyerExists) {
         // First Time Profile Creation
-        const res = await fetch("http://localhost:5000/lawyers", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/lawyers`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -102,7 +102,7 @@ export default function ProfileCard() {
         toast.success("Lawyer profile registered successfully!");
       } else {
         // Dynamic Profile Update (Changed method to PATCH to align with updated REST guidelines)
-        const res = await fetch(`http://localhost:5000/lawyers/${userId}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/lawyers/${userId}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",

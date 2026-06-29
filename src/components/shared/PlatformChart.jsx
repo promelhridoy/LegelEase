@@ -13,7 +13,7 @@ export default function PlatformChart() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/analytics")
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/analytics`)
       .then((res) => res.json())
       .then((stats) => {
         setData([

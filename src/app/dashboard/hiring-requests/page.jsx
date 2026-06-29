@@ -23,7 +23,7 @@ export default function HiringRequestsPage() {
         const { data: tokenData } = await authClient.token();
         const token = tokenData?.token || tokenData;
 
-        const res = await fetch(`http://localhost:5000/lawyer/hiring/${lawyerId}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/lawyer/hiring/${lawyerId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -60,7 +60,7 @@ export default function HiringRequestsPage() {
       const { data: tokenData } = await authClient.token();
       const token = tokenData?.token || tokenData;
 
-      const res = await fetch(`http://localhost:5000/hiring/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/hiring/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +88,7 @@ export default function HiringRequestsPage() {
       const { data: tokenData } = await authClient.token();
       const token = tokenData?.token || tokenData;
 
-      const res = await fetch(`http://localhost:5000/hiring/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/hiring/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
