@@ -12,8 +12,10 @@ import {
   FaDollarSign,
   FaRegFileAlt,
 } from "react-icons/fa";
-import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
+ import { useEffect } from "react";
+import { toast } from "sonner";
+import Swal from "sweetalert2";
 
 export default function Services() {
   // 📝 Dummy Data Structure
@@ -26,13 +28,31 @@ export default function Services() {
   const { data: session, status } = useSession();
     const user = session?.user;
     const lawyerId = user?.id;
-    console.log(user.name);
-    console.log(user.image);
-    console.log(user);
-    console.log(user);
-    console.log(lawyerId);
     
+  
     
+   
+
+useEffect(() => {
+  if (!lawyerId) return;
+
+  const getServices = async () => {
+    setLoading(true);
+
+    const res = await fetch(
+      `http://localhost:5000/services/${lawyerId}`
+    );
+
+    const data = await res.json();
+    console.log(data);
+    
+
+    setServices(data);
+    setLoading(false);
+  };
+
+  getServices();
+}, [lawyerId]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -44,33 +64,44 @@ export default function Services() {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploadingImage(true);
-    const imageFormData = new FormData();
-    imageFormData.append("image", file);
+  const file = e.target.files[0];
+  if (!file) return;
 
-    try {
-      const apiKey = "YOUR_IMGBB_API_KEY";
-      const response = await fetch(
-        `https://api.imgbb.com/1/upload?key=${apiKey}`,
-        {
-          method: "POST",
-          body: imageFormData,
-        },
-      );
-      const data = await response.json();
-      if (data.success) {
-        setFormData((prev) => ({ ...prev, image: data.data.url }));
-        alert("Image uploaded successfully to imgBB!");
+  setUploadingImage(true);
+
+  const imageFormData = new FormData();
+  imageFormData.append("image", file);
+
+  try {
+    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+
+    const response = await fetch(
+      `https://api.imgbb.com/1/upload?key=${apiKey}`,
+      {
+        method: "POST",
+        body: imageFormData,
       }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      setFormData((prev) => ({ ...prev, image: URL.createObjectURL(file) }));
-    } finally {
-      setUploadingImage(false);
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      setFormData((prev) => ({
+        ...prev,
+        image: data.data.url,
+      }));
+
+      toast.success("Image uploaded successfully!");
+    } else {
+      console.log(data);
+      toast.error("Image upload failed");
     }
-  };
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setUploadingImage(false);
+  }
+};
 
   const openAddModal = () => {
     setModalMode("add");
@@ -86,7 +117,7 @@ export default function Services() {
 
   const openEditModal = (service) => {
     setModalMode("edit");
-    setCurrentServiceId(service.id);
+    setCurrentServiceId(service._id);
     setFormData({
       name: service.name,
       specialization: service.specialization,
@@ -97,37 +128,121 @@ export default function Services() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (modalMode === "add") {
-      const newService = {
-        id: `srv-${Date.now()}`,
-        ...formData,
-        fee: Number(formData.fee),
-      };
-      setServices((prev) => [...prev, newService]);
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (modalMode === "add") {
+    const service = {
+      lawyerId: user.id,
+      lawyerName: user.name,
+      lawyerImage: user.image,
+      ...formData,
+      fee: Number(formData.fee),
+      createdAt: new Date(),
+    };
+
+    const res = await fetch("http://localhost:5000/services", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(service),
+    });
+
+    const result = await res.json();
+
+    if (result.insertedId) {
+      setServices((prev) => [
+        ...prev,
+        {
+          ...service,
+          _id: result.insertedId,
+        },
+      ]);
+
+      toast.success("Service created successfully!");
+
+      setIsModalOpen(false);
     } else {
+      toast.error("Failed to create service!");
+    }
+  } else {
+    const res = await fetch(
+      `http://localhost:5000/services/${currentServiceId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          fee: Number(formData.fee),
+        }),
+      }
+    );
+
+    const result = await res.json();
+
+    if (result.modifiedCount > 0) {
       setServices((prev) =>
         prev.map((item) =>
-          item.id === currentServiceId
-            ? { ...item, ...formData, fee: Number(formData.fee) }
-            : item,
-        ),
+          item._id === currentServiceId
+            ? {
+                ...item,
+                ...formData,
+                fee: Number(formData.fee),
+              }
+            : item
+        )
       );
-    }
-    setIsModalOpen(false);
-  };
 
-  const handleDelete = (id) => {
-    if (
-      window.confirm(
-        "Are you sure you want to permanently delete this legal service?",
-      )
-    ) {
-      setServices((prev) => prev.filter((item) => item.id !== id));
-    }
-  };
+      toast.success("Service updated successfully!");
 
+      setIsModalOpen(false);
+    } else {
+      toast.error("Failed to update service!");
+    }
+  }
+};
+
+  const handleDelete = async (id) => {
+  const result = await Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to recover this service!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#10b981",
+    cancelButtonColor: "#ef4444",
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
+
+  const res = await fetch(`http://localhost:5000/services/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = await res.json();
+
+  if (data.deletedCount > 0) {
+    setServices((prev) => prev.filter((item) => item._id !== id));
+
+    Swal.fire({
+      title: "Deleted!",
+      text: "Service has been deleted successfully.",
+      icon: "success",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  } else {
+    Swal.fire({
+      title: "Error!",
+      text: "Failed to delete service.",
+      icon: "error",
+    });
+  }
+};
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -156,7 +271,7 @@ export default function Services() {
         <AnimatePresence mode="popLayout">
           {services.map((service) => (
             <motion.div
-              key={service.id}
+              key={service._id}
               layout
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -165,13 +280,11 @@ export default function Services() {
             >
               <div className="p-5 flex gap-4 items-start">
                 {service.image ? (
-                  <Image
-                    src={service.image}
-                    alt={service.name}
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 rounded-xl object-cover shrink-0 border border-white/10"
-                  />
+                 <img
+  src={service.image}
+  alt={service.name}
+  className="w-16 h-16 rounded-xl object-cover shrink-0 border border-white/10"
+/>
                 ) : (
                   <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center text-white/30 shrink-0 border border-dashed border-white/10">
                     No Img
@@ -179,8 +292,8 @@ export default function Services() {
                 )}
                 <div className="space-y-1 min-w-0">
                   <span className="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 uppercase tracking-wider">
-                    {service.specialization}
-                  </span>
+                    {service.specialization}</span>
+          
                   <h3 className="text-base font-bold text-white tracking-wide truncate">
                     {service.name}
                   </h3>
@@ -205,7 +318,7 @@ export default function Services() {
                   <FaEdit /> Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(service.id)}
+                  onClick={() => handleDelete(service._id)}
                   className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/60 hover:text-red-400 bg-white/[0.02] hover:bg-red-500/10 border border-white/[0.05] hover:border-red-500/20 transition-all cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <FaTrashAlt /> Delete
