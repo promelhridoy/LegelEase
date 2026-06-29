@@ -137,7 +137,7 @@ export default function HiringRequestsPage() {
           >
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-sm font-bold text-white tracking-wide">{request.lawyerName || "Client Name"}</h3>
+                <h3 className="text-sm font-bold text-white tracking-wide">{request.clientName || "Client Name"}</h3>
                 <p className="text-[11px] text-white/30 flex items-center gap-1 mt-0.5"><FaEnvelope className="text-[10px]" /> {request.email}</p>
               </div>
               
@@ -186,7 +186,7 @@ export default function HiringRequestsPage() {
               <tr key={request._id} className="hover:bg-white/[0.01] transition-colors duration-150 group">
                 <td className="p-4 pl-6">
                   <div className="flex flex-col">
-                    <span className="font-bold text-white tracking-wide group-hover:text-emerald-400 transition-colors">{request.lawyerName || "Client Name"}</span>
+                    <span className="font-bold text-white tracking-wide group-hover:text-emerald-400 transition-colors">{request.clientName || "Client Name"}</span>
                     <span className="text-[11px] text-white/30 font-medium mt-0.5">{request.email}</span>
                   </div>
                 </td>
