@@ -1,53 +1,60 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaUsers, FaUserTie, FaBriefcase, FaDollarSign, FaChartLine } from 'react-icons/fa';
+import PlatformChart from '@/components/shared/PlatformChart';
 
 export default function AnalyticsPage() {
+  const [stats, setStats] = useState([]);
   // 📝 Dummy Data Structure for Analytics Metrics
-  const stats = [
-    {
-      id: 1,
-      title: "Total Users",
-      value: "1,248",
-      change: "+12% this month",
-      isPositive: true,
-      icon: <FaUsers className="text-blue-400 text-xl" />,
-      glowColor: "group-hover:shadow-blue-500/10",
-      borderColor: "hover:border-blue-500/30"
-    },
-    {
-      id: 2,
-      title: "Total Lawyers",
-      value: "184",
-      change: "+4% this month",
-      isPositive: true,
-      icon: <FaUserTie className="text-purple-400 text-xl" />,
-      glowColor: "group-hover:shadow-purple-500/10",
-      borderColor: "hover:border-purple-500/30"
-    },
-    {
-      id: 3,
-      title: "Total Hires",
-      value: "562",
-      change: "+28% this month",
-      isPositive: true,
-      icon: <FaBriefcase className="text-emerald-400 text-xl" />,
-      glowColor: "group-hover:shadow-emerald-500/10",
-      borderColor: "hover:border-emerald-500/30"
-    },
-    {
-      id: 4,
-      title: "Total Revenue",
-      value: "$14,250",
-      change: "+18% this month",
-      isPositive: true,
-      icon: <FaDollarSign className="text-amber-400 text-xl" />,
-      glowColor: "group-hover:shadow-amber-500/10",
-      borderColor: "hover:border-amber-500/30"
-    }
-  ];
+  useEffect(() => {
+  Promise.all([
+    fetch("http://localhost:5000/analytics/users").then((res) => res.json()),
+    fetch("http://localhost:5000/analytics/lawyers").then((res) => res.json()),
+    fetch("http://localhost:5000/analytics/hires").then((res) => res.json()),
+    fetch("http://localhost:5000/analytics/revenue").then((res) => res.json()),
+  ]).then(([users, lawyers, hires, revenue]) => {
+    setStats([
+      {
+        id: 1,
+        title: "Total Users",
+        value: users.totalUsers,
+        change: "",
+        icon: <FaUsers className="text-blue-400 text-xl" />,
+        glowColor: "group-hover:shadow-blue-500/10",
+        borderColor: "hover:border-blue-500/30",
+      },
+      {
+        id: 2,
+        title: "Total Lawyers",
+        value: lawyers.totalLawyers,
+        change: "",
+        icon: <FaUserTie className="text-purple-400 text-xl" />,
+        glowColor: "group-hover:shadow-purple-500/10",
+        borderColor: "hover:border-purple-500/30",
+      },
+      {
+        id: 3,
+        title: "Total Hires",
+        value: hires.totalHires,
+        change: "",
+        icon: <FaBriefcase className="text-emerald-400 text-xl" />,
+        glowColor: "group-hover:shadow-emerald-500/10",
+        borderColor: "hover:border-emerald-500/30",
+      },
+      {
+        id: 4,
+        title: "Total Revenue",
+        value: `$${revenue.totalRevenue}`,
+        change: "",
+        icon: <FaDollarSign className="text-amber-400 text-xl" />,
+        glowColor: "group-hover:shadow-amber-500/10",
+        borderColor: "hover:border-amber-500/30",
+      },
+    ]);
+  });
+}, []);
 
   // Animation Container Configs
   const containerVariants = {
@@ -114,11 +121,22 @@ export default function AnalyticsPage() {
       </motion.div>
 
       {/* FUTURE EXPANSION INDICATOR */}
-      <div className="text-center p-12 bg-[#090D16]/30 rounded-2xl border border-dashed border-white/5 mt-4">
-        <p className="text-xs md:text-sm font-bold text-white/20">
-          Advanced graphical charts and tabular conversion pipelines will compile natively below this matrix.
-        </p>
-      </div>
+      <div className="mt-8 bg-[#090D16]/80 border border-white/5 rounded-2xl p-6">
+  <h2 className="text-lg font-bold text-white mb-2">
+    Platform Statistics
+  </h2>
+
+  <p className="text-sm text-white/40 mb-5">
+    Visual representation of users, lawyers, hires and revenue.
+  </p>
+
+  {/* Bar Chart */}
+  <div className="h-[300px]">
+    <div className="h-full w-full">
+      <PlatformChart />
+    </div>
+  </div>
+</div>
     </motion.div>
   );
 }

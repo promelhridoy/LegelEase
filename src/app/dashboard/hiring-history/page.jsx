@@ -4,46 +4,51 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserTie, FaGavel, FaDollarSign, FaCalendarAlt, FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaCreditCard } from 'react-icons/fa';
 import { useSession } from "@/lib/auth-client";
-
+import PaymentModal from '@/components/shared/PaymentModal';
 
 export default function HiringHistoryPage() {
-const { data: session } = useSession();
-
-const user = session?.user;
-
-const userId = user?.id;
-console.log(userId);
-
+  const { data: session } = useSession();
+  const user = session?.user;
+  const userId = user?.id;
 
   const [hiringRecords, setHiringRecords] = useState([]);
-useEffect(() => {
-  if (!userId) return;
+  const [selectedRecord, setSelectedRecord] = useState(null); 
 
-
-  fetch(`http://localhost:5000/hiring/${userId}`)
-    .then((res) => {
-      if (!res.ok) throw new Error("Failed to load hiring history");
-      return res.json();
-    })
-    .then((data) => {
-      setHiringRecords(Array.isArray(data) ? data : []);
-    })
-    .catch((err) => {
-      console.error(err);
-      toast.error("Failed to load hiring history.");
-      setHiringRecords([]);
-    });
-}, [userId]);
-
-console.log(hiringRecords);
-
-
-  const handlePayment = (id, lawyerName) => {
-    alert(`Initiating secure checkout for ${lawyerName}`);
+  const fetchHiringHistory = () => {
+    if (!userId) return;
+    fetch(`http://localhost:5000/hiring/${userId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load hiring history");
+        return res.json();
+      })
+      .then((data) => {
+        setHiringRecords(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error(err);
+        setHiringRecords([]);
+      });
   };
 
-  const renderStatusBadge = (status) => {
-    switch (status) {
+  useEffect(() => {
+    fetchHiringHistory();
+  }, [userId]);
+
+  const handlePaymentSuccess = () => {
+    setSelectedRecord(null);
+    fetchHiringHistory(); 
+  };
+
+  const renderStatusBadge = (record) => {
+    if (record.paymentStatus === 'Paid') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-blue-500/10 border border-blue-500/20 text-blue-400 uppercase tracking-wider">
+          <FaCheckCircle className="text-[10px]" /> Paid
+        </span>
+      );
+    }
+
+    switch (record.status) {
       case 'accepted':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#05E599]/10 border border-[#05E599]/20 text-[#05E599] uppercase tracking-wider">
@@ -74,7 +79,7 @@ console.log(hiringRecords);
         <p className="text-xs md:text-sm text-white/40 font-medium">Monitor your active legal counsel requests and secure settlements.</p>
       </div>
 
-      {/* 📱 MOBILE VIEW: Shows as beautiful modern stack cards (Hidden on desktop) */}
+      {/* 📱 MOBILE VIEW */}
       <div className="grid grid-cols-1 gap-4 lg:hidden">
         {hiringRecords?.map((record) => (
           <div key={record._id} className="bg-[#090D16]/80 backdrop-blur-xl border border-white/[0.05] p-5 rounded-2xl space-y-4 relative overflow-hidden">
@@ -85,7 +90,7 @@ console.log(hiringRecords);
                 <h3 className="text-sm font-black text-white tracking-wide">{record.lawyerName}</h3>
                 <p className="text-xs text-white/50 mt-0.5">{record.specialization}</p>
               </div>
-              {renderStatusBadge(record.status)}
+              {renderStatusBadge(record)}
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/[0.04] text-xs">
@@ -100,9 +105,13 @@ console.log(hiringRecords);
             </div>
 
             <div className="pt-2">
-              {record.status === 'accepted' ? (
+              {record.paymentStatus === 'Paid' ? (
+                <button disabled className="w-full py-2.5 text-xs font-bold bg-white/5 text-white/40 border border-white/5 rounded-xl cursor-not-allowed">
+                  Paid
+                </button>
+              ) : record.status === 'accepted' ? (
                 <button
-                  onClick={() => handlePayment(record.id, record.record.lawyerName)}
+                  onClick={() => setSelectedRecord(record)}
                   className="w-full py-2.5 text-xs font-extrabold bg-gradient-to-r from-[#05E599] to-[#9D4EDD] text-white rounded-xl shadow-lg cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <FaCreditCard /> Pay Retainer
@@ -117,7 +126,7 @@ console.log(hiringRecords);
         ))}
       </div>
 
-      {/* 🖥️ DESKTOP VIEW: Legacy Premium Table (Hidden on mobile screens) */}
+      {/* 🖥️ DESKTOP VIEW */}
       <div className="hidden lg:block bg-[#090D16]/80 backdrop-blur-xl border border-white/[0.05] rounded-3xl overflow-hidden shadow-2xl relative w-full">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#05E599]/5 rounded-full blur-3xl pointer-events-none" />
         
@@ -140,11 +149,15 @@ console.log(hiringRecords);
                   <td className="p-5 text-sm font-semibold text-white/70 whitespace-nowrap">{record.specialization}</td>
                   <td className="p-5 text-sm font-mono font-bold text-white/90 whitespace-nowrap">${record.rate}</td>
                   <td className="p-5 text-sm font-medium text-white/50 whitespace-nowrap">{record.hiringDate}</td>
-                  <td className="p-5 whitespace-nowrap">{renderStatusBadge(record.status)}</td>
+                  <td className="p-5 whitespace-nowrap">{renderStatusBadge(record)}</td>
                   <td className="p-5 text-right whitespace-nowrap">
-                    {record.status === 'accepted' ? (
+                    {record.paymentStatus === 'Paid' ? (
+                      <button disabled className="px-4 py-2 text-xs font-bold bg-white/5 text-white/40 border border-white/5 rounded-xl cursor-not-allowed">
+                        Paid
+                      </button>
+                    ) : record.status === 'accepted' ? (
                       <button
-                        onClick={() => handlePayment(record.id, record.lawyerName)}
+                        onClick={() => setSelectedRecord(record)}
                         className="px-4 py-2 text-xs font-extrabold bg-gradient-to-r from-[#05E599] to-[#9D4EDD] text-white rounded-xl shadow-lg cursor-pointer hover:brightness-110 transition-all inline-flex items-center gap-1.5"
                       >
                         <FaCreditCard /> Pay Retainer
@@ -161,6 +174,16 @@ console.log(hiringRecords);
           </table>
         </div>
       </div>
+
+      <AnimatePresence>
+        {selectedRecord && (
+          <PaymentModal
+            hiringData={selectedRecord} 
+            userEmail={user?.email} 
+            closeModal={handlePaymentSuccess} 
+          />
+        )}
+      </AnimatePresence>
 
     </motion.div>
   );
